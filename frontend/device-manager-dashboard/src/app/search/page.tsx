@@ -127,19 +127,12 @@ export default function SearchPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-    <header className="text-center space-y-2 flex flex-col items-center">
-      <Image
-        src="/logo.svg"
-        alt="Roie Trackers Logo"
-        width={200}
-        height={80}
-        className="mb-1"
-      />
-    </header>
-      <p className="text-[#428fda] text-sm sm:text-base">
-        Search devices or users by name, IMEI, or email
-      </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
+            👤Search Records
+          </h1>
+          <p className="text-[#428fda] text-sm sm:text-base">
+            Search devices or users by name, IMEI, or email
+          </p>
 
         {/* Search Input */}
         <div className="flex gap-3 justify-center flex-wrap">

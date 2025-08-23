@@ -75,11 +75,13 @@ export default function AddDevicePage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">➕ Add Device</h1>
-          <p className="text-[#428fda] text-sm sm:text-base">Switch between bulk and single device mode</p>
-        </header>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
+            ➕ Add Device
+        </h1>
+        <p className="text-[#428fda] text-sm sm:text-base">
+            Switch between bulk and single device mode
+        </p>
+        
 
         {/* Feedback message */}
         {feedback && (

@@ -54,22 +54,12 @@ export default function OnboardUserPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="text-center flex flex-col items-center space-y-2">
-          <Image
-            src="/logo.svg"
-            alt="Roie Trackers Logo"
-            width={80}
-            height={80}
-            className="mb-2"
-          />
           <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
             👤 Onboard New User
           </h1>
           <p className="text-[#428fda] text-sm sm:text-base">
             Enter user details to create a new account
           </p>
-        </header>
 
         {/* Feedback */}
         {feedback && (
