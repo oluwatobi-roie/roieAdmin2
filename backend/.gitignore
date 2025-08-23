@@ -1,9 +1,0 @@
-# Ignore environment variables
-.env*
-# backend/.env
-
-# Ignore credentials
-venv*
-
-# Ignore node_modules (common in JS projects)
-node_modules/
