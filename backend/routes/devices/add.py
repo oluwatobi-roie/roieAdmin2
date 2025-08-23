@@ -15,6 +15,7 @@ from routes.devices import device_bp
 
 
 MAX_BULK = 15          # hard cap
+
 # Full api path: /api/devices/add
 @device_bp.route('/add', methods=['POST'])
 def add_device():
