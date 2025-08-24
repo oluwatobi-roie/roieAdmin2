@@ -1,8 +1,10 @@
 from .common import request, jsonify, datetime, timezone, db, text, exclude_users_list
 from routes.devices import device_bp
+from services.login_required import login_required
 
 # /api/device/search
 @device_bp.route('/search', methods=['GET'])
+@login_required
 def search_device_or_user():
     search = request.args.get('term')
     if not search:

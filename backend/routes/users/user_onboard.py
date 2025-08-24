@@ -3,9 +3,11 @@
 from flask import Blueprint, request, jsonify
 from services.user_onboard import onboard_user
 from routes.users import user_onboard_bp
+from services.login_required import login_required
 
 # Full api path: /api/user/onboard_user
 @user_onboard_bp.route("/onboard_user", methods=["POST"])
+@login_required
 def api_onboard_user():
     result = onboard_user(request.get_json())
 

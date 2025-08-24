@@ -2,9 +2,12 @@
 from .common import request, jsonify
 from services.device_link import link_device_to_user, UserNotFound, DeviceNotFound, AlreadyLinked
 from routes.devices import device_bp
+from services.login_required import login_required
+
 
 # Full route => /api/device/link_device
 @device_bp.route("/link_device", methods=["POST"])
+@login_required
 def api_link_device():
     data = request.get_json() or {}
     email      = data.get("email")
