@@ -3,6 +3,7 @@ import requests
 from routes.auth import auth_bp
 from flask import Flask, request, jsonify, make_response
 from dotenv import load_dotenv
+from routes.devices.common import admin_user_list
 
 load_dotenv()
 
@@ -28,8 +29,15 @@ def login():
         )
 
         if response.status_code == 200:
+            print ("Login successful, setting cookie")
+            user_data = response.json()
+
+            if user_data.get("id") not in admin_user_list:
+                return jsonify({"error": "Unauthorized - not an admin user"}), 401
             # ✅ Traccar returned valid session
-            resp = make_response(jsonify({"message": "Login successful"}))
+            resp = make_response(jsonify({"message": "Login successful",
+                                          "user_name": user_data.get("name")}))
+            
             # Store Traccar session cookie in our own HttpOnly cookie
             resp.set_cookie(
                 "session_token",
