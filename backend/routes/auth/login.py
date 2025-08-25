@@ -44,7 +44,7 @@ def login():
                 response.cookies.get("JSESSIONID"),  # Traccar session ID
                 httponly=True,
                 secure=True,
-                samesite="Strict"
+                samesite="None"
             )
             return resp
         else:
