@@ -4,7 +4,7 @@ from config import TRACCAR_API_URL
 import requests
 import os
 
-
+# Full route: /api/auth/check-session
 @auth_bp.route('/check-session', methods=['GET'])
 def check_session():
     # Forward cookie to Traccar to validate session

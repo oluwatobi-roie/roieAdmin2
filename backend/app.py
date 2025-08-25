@@ -10,6 +10,7 @@ from routes.users import user_onboard
 from routes.auth import auth_bp
 from routes.auth import login
 from routes.auth import logout
+from routes.auth import check_session
 
 
 
