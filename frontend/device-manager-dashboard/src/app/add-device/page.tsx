@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { toast } from 'sonner';
 
 export default function AddDevicePage() {
+  const { auth_loading, authenticated } = useAuth();
   const [mode, setMode] = useState<'single' | 'bulk'>('single');
   const [formData, setFormData] = useState({
     name: '',
@@ -71,6 +73,10 @@ export default function AddDevicePage() {
       setLoading(false);
     }
   };
+
+  // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking session...</p>;
+  if (!authenticated) return null;
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
