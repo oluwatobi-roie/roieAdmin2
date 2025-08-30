@@ -9,6 +9,7 @@ load_dotenv()
 
 TRACCAR_API_URL = os.getenv("TRACCAR_API_URL")
 
+
 # Full api path: /api/auth/login
 @auth_bp.route("/login", methods=["POST"])
 def login():
@@ -43,7 +44,7 @@ def login():
                 "session_token",
                 response.cookies.get("JSESSIONID"),  # Traccar session ID
                 httponly=True,
-                secure=True,
+                secure= False if os.getenv("FLASK_ENV") == "development" else True,
                 samesite="None"
             )
             return resp
