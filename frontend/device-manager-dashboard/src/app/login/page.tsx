@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FiMail, FiLock } from "react-icons/fi";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export default function LoginPage() {
         setFeedback(data.error || "Login failed");
       } else {
         alert("Logged in successfully!");
-        // Add redirect/session logic here
+        router.push('/');
       }
     } catch (err) {
       console.error(err);
@@ -46,7 +48,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg rounded-2xl bg-white">
         <CardContent className="p-8 space-y-6">
           <div className="flex justify-center mb-6">
-            <Image src="/logo.png" alt="Logo" width={120} height={120} />
+            <Image src="/logo.svg" alt="Logo" width={120} height={120} />
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold text-[#414095] text-center">

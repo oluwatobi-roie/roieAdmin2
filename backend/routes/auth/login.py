@@ -44,8 +44,8 @@ def login():
                 "session_token",
                 response.cookies.get("JSESSIONID"),  # Traccar session ID
                 httponly=True,
-                secure= False if os.getenv("FLASK_ENV") == "development" else True,
-                samesite="None"
+                secure=(os.getenv("FLASK_ENV") != "development"),
+                samesite="Lax" if os.getenv("FLASK_ENV") == "development" else "None",
             )
             return resp
         else:

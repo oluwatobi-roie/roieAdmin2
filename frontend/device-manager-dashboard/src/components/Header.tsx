@@ -1,11 +1,25 @@
 'use client';
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      router.push("/login"); // always redirect to login
+    }
+  };
 
   const links = [
     { href: "/", label: "Home" },
@@ -24,7 +38,7 @@ export default function Header() {
         </Link>
 
         {/* Navigation */}
-        <nav className="flex gap-6">
+        <nav className="flex gap-6 items-center">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -36,6 +50,14 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="hover:text-gray-200 transition-colors"
+          >
+            Logout
+          </button>
         </nav>
       </div>
     </header>

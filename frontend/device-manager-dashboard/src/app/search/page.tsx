@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,9 @@ import { FiSmartphone, FiHash, FiInfo, FiMapPin, FiUser, FiCpu, FiCheckCircle, F
 import Image from 'next/image';
 
 export default function SearchPage() {
+  // ---------- AUTH PROTECTION ----------
+  const {auth_loading, authenticated } = useAuth();
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any | null>(null);
@@ -124,6 +128,11 @@ export default function SearchPage() {
     return 'bg-gray-100 text-gray-800';
   };
 
+    // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking session...</p>;
+  if (!authenticated) return null;
+
+  // ---------- RENDER ----------
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-5xl mx-auto space-y-8">

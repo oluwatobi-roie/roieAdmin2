@@ -1,26 +1,31 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FiUser, FiMail, FiPhone } from 'react-icons/fi';
-import Image from 'next/image';
 
 export default function OnboardUserPage() {
+  // ---------- AUTH PROTECTION ----------
+  const { auth_loading, authenticated } = useAuth();
+
+  // ---------- FORM STATE ----------
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // ---------- HANDLE ONBOARD ----------
   const handleOnboard = async () => {
     if (!name || !email || !phone) {
       setFeedback({ type: 'error', message: 'All fields are required.' });
       return;
     }
 
-    setLoading(true);
+    setLoadingForm(true);
     setFeedback(null);
 
     try {
@@ -28,15 +33,13 @@ export default function OnboardUserPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, phone }),
+        credentials: 'include',
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setFeedback({
-          type: 'success',
-          message: `User onboarded successfully!}`,
-        });
+        setFeedback({ type: 'success', message: 'User onboarded successfully!' });
         setName('');
         setEmail('');
         setPhone('');
@@ -47,19 +50,22 @@ export default function OnboardUserPage() {
       console.error('Onboard error:', err);
       setFeedback({ type: 'error', message: 'Unexpected error occurred.' });
     } finally {
-      setLoading(false);
+      setLoadingForm(false);
     }
   };
 
+  // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking session...</p>;
+  if (!authenticated) return null;
+
+  // ---------- RENDER ----------
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
-            👤 Onboard New User
-          </h1>
-          <p className="text-[#428fda] text-sm sm:text-base">
-            Enter user details to create a new account
-          </p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">👤 Onboard New User</h1>
+        <p className="text-[#428fda] text-sm sm:text-base">
+          Enter user details to create a new account
+        </p>
 
         {/* Feedback */}
         {feedback && (
@@ -112,10 +118,10 @@ export default function OnboardUserPage() {
 
             <Button
               onClick={handleOnboard}
-              disabled={loading}
+              disabled={loadingForm}
               className="w-full bg-[#428fda] hover:bg-[#414095] text-white mt-2"
             >
-              {loading ? 'Onboarding...' : 'Onboard User'}
+              {loadingForm ? 'Onboarding...' : 'Onboard User'}
             </Button>
           </CardContent>
         </Card>
