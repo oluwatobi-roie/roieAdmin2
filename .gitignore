@@ -58,3 +58,9 @@ yarn-error.log*
 node_modules/
 # Ignore node_modules (common in JS projects)
 node_modules/
+
+
+
+# .gitignore
+__pycache__/
+*.pyc
