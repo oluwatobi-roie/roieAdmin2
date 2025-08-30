@@ -20,10 +20,10 @@ export default function AddDevicePage() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
+};
 
   const handleSubmit = async () => {
     setFeedback(null);
@@ -104,7 +104,7 @@ export default function AddDevicePage() {
         <ToggleGroup
           type="single"
           value={mode}
-          onValueChange={(val: any) => val && setMode(val)}
+          onValueChange={(val: 'single' | 'bulk') => setMode(val)}
           className="w-full justify-center mb-4"
         >
           <ToggleGroupItem value="single">Single</ToggleGroupItem>

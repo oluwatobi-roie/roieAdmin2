@@ -9,6 +9,7 @@ export async function checkSession() {
 
     return await res.json();
   } catch (err) {
+    console.error("Session check error:", err);
     return { authenticated: false };
   }
 }
