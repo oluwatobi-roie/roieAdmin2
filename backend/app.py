@@ -7,6 +7,10 @@ from routes.devices import search
 from routes.devices import device_link
 from routes.users import user_onboard_bp
 from routes.users import user_onboard
+from routes.auth import auth_bp
+from routes.auth import login
+from routes.auth import logout
+from routes.auth import check_session
 
 
 
@@ -14,10 +18,11 @@ from routes.users import user_onboard
 # Initialize Flask application and register blueprints
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, supports_credentials=True)
     init_db(app)
 
     # Register blueprints
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')  # Registering the login blueprint
     app.register_blueprint(device_bp, url_prefix='/api/device') # Registering the device blueprint
     app.register_blueprint(user_onboard_bp, url_prefix='/api/user') # Registering the user onboarding blueprint
     return app

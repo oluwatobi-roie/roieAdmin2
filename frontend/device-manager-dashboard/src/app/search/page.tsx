@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,9 @@ import { FiSmartphone, FiHash, FiInfo, FiMapPin, FiUser, FiCpu, FiCheckCircle, F
 import Image from 'next/image';
 
 export default function SearchPage() {
+  // ---------- AUTH PROTECTION ----------
+  const {auth_loading, authenticated } = useAuth();
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [userProfile, setUserProfile] = useState<any | null>(null);
@@ -124,22 +128,20 @@ export default function SearchPage() {
     return 'bg-gray-100 text-gray-800';
   };
 
+    // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking You have access... please wait</p>;
+  if (!authenticated) return null;
+
+  // ---------- RENDER ----------
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-    <header className="text-center space-y-2 flex flex-col items-center">
-      <Image
-        src="/logo.svg"
-        alt="Roie Trackers Logo"
-        width={200}
-        height={80}
-        className="mb-1"
-      />
-    </header>
-      <p className="text-[#428fda] text-sm sm:text-base">
-        Search devices or users by name, IMEI, or email
-      </p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
+            👤Search Records
+          </h1>
+          <p className="text-[#428fda] text-sm sm:text-base">
+            Search devices or users by name, IMEI, or email
+          </p>
 
         {/* Search Input */}
         <div className="flex gap-3 justify-center flex-wrap">

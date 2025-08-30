@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { toast } from 'sonner';
 
 export default function AddDevicePage() {
+  const { auth_loading, authenticated } = useAuth();
   const [mode, setMode] = useState<'single' | 'bulk'>('single');
   const [formData, setFormData] = useState({
     name: '',
@@ -72,14 +74,20 @@ export default function AddDevicePage() {
     }
   };
 
+  // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking You have access... please wait</p>;
+  if (!authenticated) return null;
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">➕ Add Device</h1>
-          <p className="text-[#428fda] text-sm sm:text-base">Switch between bulk and single device mode</p>
-        </header>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
+            ➕ Add Device
+        </h1>
+        <p className="text-[#428fda] text-sm sm:text-base">
+            Switch between bulk and single device mode
+        </p>
+        
 
         {/* Feedback message */}
         {feedback && (

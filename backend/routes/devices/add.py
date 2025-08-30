@@ -12,11 +12,14 @@ It retries once in case of a conflict.
 
 from .common import request, jsonify, db, text, IntegrityError, random
 from routes.devices import device_bp
+from services.login_required import login_required
 
 
 MAX_BULK = 15          # hard cap
+
 # Full api path: /api/devices/add
 @device_bp.route('/add', methods=['POST'])
+@login_required
 def add_device():
     data = request.get_json()
     mode = data.get("mode", "single")
