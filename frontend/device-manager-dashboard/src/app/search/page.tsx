@@ -129,7 +129,7 @@ export default function SearchPage() {
   };
 
     // ---------- CONDITIONAL RENDER ----------
-  if (auth_loading) return <p className="text-center py-10">Checking session...</p>;
+  if (auth_loading) return <p className="text-center py-10">Checking You have access... please wait</p>;
   if (!authenticated) return null;
 
   // ---------- RENDER ----------

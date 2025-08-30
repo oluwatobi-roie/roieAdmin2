@@ -21,13 +21,6 @@ const {auth_loading, authenticated } = useAuth();
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <header className="text-center flex flex-col items-center space-y-2">
-          <Image
-            src="/logo.svg"
-            alt="Roie Trackers Logo"
-            width={150}
-            height={80}
-            className="mb-2"
-          />
           <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
             Device Manager Dashboard
           </h1>
