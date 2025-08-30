@@ -1,9 +1,21 @@
+"use client";
+
 import Link from 'next/link';
+import { useAuth } from './hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 
 export default function Home() {
+
+    // ---------- AUTH PROTECTION ----------
+const {auth_loading, authenticated } = useAuth();
+
+      // ---------- CONDITIONAL RENDER ----------
+  if (auth_loading) return <p className="text-center py-10">Checking session...</p>;
+  if (!authenticated) return null;
+
+  // ---------- RENDER ----------
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
