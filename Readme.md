@@ -104,11 +104,6 @@ Node.js 18+
 
 SQL DB running (Traccar-compatible)
 
-Setup Instructions
-
-# Clone the repo
-$ git clone https://github.com/your-username/roie-webapp.git
-$ cd roie-webapp
 
 # Backend Setup
 $ cd backend
