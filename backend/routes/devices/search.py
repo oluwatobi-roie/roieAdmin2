@@ -126,6 +126,7 @@ def search_device_or_user():
 
 def _format_user(row):
     return {
+        "id": row.id,
         "name":  row.name,
         "email": mask_email(row.email),
         "phone": mask_phone(row.phone),
@@ -186,6 +187,7 @@ def _fetch_users_for_device(device_id, group_id=None):
         if row.id in exclude_users_list:
             continue
         user_profiles.append({
+            "id": row.id,
             "name": row.name,
             "email": mask_email(row.email),
             "phone": mask_phone(row.phone),

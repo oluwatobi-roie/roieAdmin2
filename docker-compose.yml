@@ -8,11 +8,14 @@ services:
       - "5000:5000"
     environment:
       FLASK_ENV: production
+      FINANCE_DATA_DIR: /app/data/finance
       TRACCAR_API_URL: "${TRACCAR_API_URL:?Set TRACCAR_API_URL}"
       DB_HOST: "${DB_HOST:?Set DB_HOST}"
       DB_USER: "${DB_USER:?Set DB_USER}"
       DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
       DB_NAME: "${DB_NAME:?Set DB_NAME}"
+    volumes:
+      - finance_data:/app/data/finance
     security_opt:
       - no-new-privileges:true
 
@@ -49,6 +52,9 @@ services:
     restart: unless-stopped
     networks:
       - roie_net
+
+volumes:
+  finance_data:
 
 networks:
   roie_net:

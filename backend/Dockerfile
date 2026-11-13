@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir \
     -r requirements.txt
 
 COPY . .
+RUN mkdir -p /app/data/finance && chown -R 10003:10003 /app/data
 
 # =========================
 # Runtime stage (DISTROLESS)

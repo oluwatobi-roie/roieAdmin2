@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import FinanceHistory from '@/components/FinanceHistory';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -171,6 +172,7 @@ export default function SearchPage() {
                 <p className="flex items-center gap-2 text-gray-700"><FiCalendar /> Expiry: {new Date(userProfile.expiry).toLocaleString()}</p>
               </CardContent>
             </Card>
+            {userProfile.id && <FinanceHistory userId={userProfile.id} />}
           </section>
         )}
 
@@ -211,6 +213,7 @@ export default function SearchPage() {
                               <p className="font-medium">{user.name}</p>
                               <p className="text-gray-600">{user.email}</p>
                               <p className="text-gray-500">Status: <span className="font-semibold">{user.status}</span> | Expiry: {new Date(user.expiry).toLocaleDateString()}</p>
+                              {user.id && <details className="mt-2"><summary className="cursor-pointer text-[#414095]">Vehicle finance history</summary><FinanceHistory userId={user.id} deviceId={device.device_id} /></details>}
                             </div>
                           </div>
                         ))}

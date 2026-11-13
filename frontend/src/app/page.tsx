@@ -80,8 +80,8 @@ const {auth_loading, authenticated } = useAuth();
                 Track payments, billing, and transaction history.
               </p>
               <Link href="/finance" className="mt-auto w-full">
-                <Button className="w-full bg-gray-300 text-gray-700 cursor-not-allowed" disabled>
-                  Coming Soon
+                <Button className="w-full bg-[#428fda] hover:bg-[#414095] text-white">
+                  Open Finance
                 </Button>
               </Link>
             </CardContent>

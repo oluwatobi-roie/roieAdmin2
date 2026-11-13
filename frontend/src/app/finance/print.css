@@ -1,0 +1,28 @@
+.invoice-paper { overflow-wrap: anywhere; }
+.invoice-breakdown th, .invoice-breakdown td { vertical-align: top; }
+.invoice-breakdown th:first-child { width: 35%; }
+@media (max-width: 480px) {
+  .invoice-breakdown { font-size: 0.7rem; }
+  .invoice-breakdown th, .invoice-breakdown td { padding: 0.4rem 0.2rem; }
+}
+@media print {
+  @page { size: A4; margin: 16mm; }
+  body { background: white !important; color: black !important; }
+  body > header, body > div > header, header:has(nav), .finance-no-print { display: none !important; }
+  .finance-page { padding: 0 !important; min-height: auto !important; background: white !important; }
+  .invoice-paper { border: 0 !important; padding: 0 !important; box-shadow: none !important; font-size: 10pt; }
+  .invoice-paper > * { margin-block-start: 0 !important; margin-block-end: 12px !important; }
+  .invoice-paper > .border-b { padding-bottom: 10px !important; }
+  .invoice-task > * { margin-block-start: 0 !important; margin-block-end: 8px !important; }
+  .invoice-task-heading { padding: 6px 10px !important; }
+  .invoice-breakdown th, .invoice-breakdown td { padding: 4px 6px !important; }
+  .invoice-totals { break-inside: avoid; }
+  .invoice-task, .invoice-rate-group, .invoice-vehicles { break-inside: auto; }
+  .invoice-task-heading { break-after: avoid; }
+  .invoice-task-subtotal { break-inside: avoid; break-before: avoid; }
+  .invoice-paper table { width: 100%; font-size: 9pt; }
+  .invoice-paper thead { display: table-header-group; }
+  .invoice-paper tr { break-inside: avoid; }
+  .invoice-vehicles { orphans: 3; widows: 3; font-size: 9pt; line-height: 1.45; }
+  .invoice-vehicle-name { white-space: normal; }
+}

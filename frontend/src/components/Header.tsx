@@ -29,7 +29,7 @@ export default function Header() {
     { href: "/search", label: "Search", icon: <FiSearch /> },
     { href: "/onboard_user", label: "Onboard Users", icon: <FiUserPlus /> },
     { href: "/add-device", label: "Add Device", icon: <FiPlus /> },
-    { href: "/#", label: "Finance", icon: <FiCreditCard /> },
+    { href: "/finance", label: "Finance", icon: <FiCreditCard /> },
   ];
 
   return (
