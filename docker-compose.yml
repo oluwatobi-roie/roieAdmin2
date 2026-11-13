@@ -1,0 +1,55 @@
+services:
+
+  backend:
+    container_name: admin_backend
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: production
+      TRACCAR_API_URL: "${TRACCAR_API_URL:?Set TRACCAR_API_URL}"
+      DB_HOST: "${DB_HOST:?Set DB_HOST}"
+      DB_USER: "${DB_USER:?Set DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD}"
+      DB_NAME: "${DB_NAME:?Set DB_NAME}"
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    read_only: false
+
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    networks:
+      - roie_net
+
+  frontend:
+    container_name: admin_frontend
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: "${NEXT_PUBLIC_BACKEND_URL:?Set NEXT_PUBLIC_BACKEND_URL}"
+      NEXT_TELEMETRY_DISABLED: "1"
+      TMPDIR: /tmp
+      NODE_ENV: production
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    restart: unless-stopped
+    networks:
+      - roie_net
+
+networks:
+  roie_net:
+    external: true

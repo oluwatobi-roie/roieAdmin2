@@ -1,20 +1,21 @@
+// app/api/user/onboarduser/route.ts
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    console.log('Proxy received body:', body); // <--- log to verify
 
-    const res = await fetch('http://127.0.0.1:5000/api/device/link_device', {
+    // Forward the request to the backend API
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/user/onboard_user`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      credentials: 'include',
+      headers: {
+          cookie: req.headers.get("cookie") || "",
+          'Content-Type': 'application/json'
+        },
     });
 
     const data = await res.json();
-    console.log('Proxy response:', data);
-
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error('Proxy API error:', error);

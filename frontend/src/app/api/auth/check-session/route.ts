@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
     // Forward the request to your backend session check
     const cookie = req.cookies.get('session_token')?.value;
 
-    const res = await fetch(`http://127.0.0.1:5000/api/auth/check-session`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/auth/check-session`, {
       method: 'GET',
       headers: {
         cookie: `session_token=${cookie}`, // forward session cookie

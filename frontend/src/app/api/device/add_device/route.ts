@@ -23,11 +23,12 @@ export async function POST(req: Request) {
     const body: AddDeviceRequest = await req.json(); // <-- typed body
     console.log('Received body:', body);
 
-    const res = await fetch('http://127.0.0.1:5000/api/device/add', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/add`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' ,
+        cookie: req.headers.get("cookie") || ""
+      },
       body: JSON.stringify(body),
-      credentials: 'include',
     });
 
     const data: AddDeviceResponse = await res.json(); // <-- typed response
