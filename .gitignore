@@ -3,14 +3,7 @@
 .venv*
 .vscode*
 
-# Ignore environment variables
-backend/.env*
-backend/venv*
 
-
-
-
-#***************Frontend/device-manager-dashboard/.gitignore*****************#
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -27,12 +20,6 @@ backend/venv*
 # testing
 /coverage
 
-# next.js
-/frontend/device-manager-dashboard/.next/
-/frontend/device-manager-dashboard/out/
-
-# production
-/frontend/device-manager-dashboard/build
 
 # misc
 .DS_Store
@@ -45,14 +32,14 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.production
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-/frontend/device-manager-dashboard/next-env.d.ts
 
 # Ignore node_modules (common in JS projects)
 node_modules/

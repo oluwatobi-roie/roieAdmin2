@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const body: LoginRequest = await req.json();
 
     // Forward request to Flask backend
-    const backendRes = await fetch(`http://127.0.0.1:5000/api/auth/login`, {
+    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
