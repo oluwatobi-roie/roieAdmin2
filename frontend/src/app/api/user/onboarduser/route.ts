@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     // Forward the request to the backend API
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/user/onboard_user`, {
+    const res = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/user/onboard_user`, {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {

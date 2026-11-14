@@ -81,10 +81,10 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-xl mx-auto space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">
             ➕ Add Device
         </h1>
-        <p className="text-[#428fda] text-sm sm:text-base">
+        <p className="text-slate-500 text-sm sm:text-base">
             Switch between bulk and single device mode
         </p>
         
@@ -112,14 +112,14 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         </ToggleGroup>
 
         {/* Form Card */}
-        <Card className="shadow-lg border border-[#428fda] hover:shadow-2xl transition-shadow bg-gradient-to-r from-[#e2e4f7] to-[#d6ebfa] rounded-xl">
+        <Card className="shadow-sm border border-slate-200 hover:shadow-md transition-shadow bg-white rounded-xl">
           <CardContent className="p-6 space-y-4">
             <Input
               name="name"
               placeholder="Device Name"
               value={formData.name}
               onChange={handleChange}
-              className="border-[#428fda] focus:ring-[#414095]"
+              className="border-slate-200 focus:ring-blue-700"
             />
 
             {mode === 'single' ? (
@@ -129,14 +129,14 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   placeholder="Phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="border-[#428fda] focus:ring-[#414095]"
+                  className="border-slate-200 focus:ring-blue-700"
                 />
                 <Input
                   name="uniqueid"
                   placeholder="Unique ID / IMEI"
                   value={formData.uniqueid}
                   onChange={handleChange}
-                  className="border-[#428fda] focus:ring-[#414095]"
+                  className="border-slate-200 focus:ring-blue-700"
                 />
               </>
             ) : (
@@ -148,13 +148,13 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 onChange={handleChange}
                 min={1}
                 max={15}
-                className="border-[#428fda] focus:ring-[#414095]"
+                className="border-slate-200 focus:ring-blue-700"
               />
             )}
 
             <Button
               onClick={handleSubmit}
-              className="w-full bg-[#428fda] hover:bg-[#414095] text-white"
+              className="w-full bg-blue-800 hover:bg-blue-900 text-white"
               disabled={loading || (mode === 'bulk' && (Number(formData.count) < 1 || Number(formData.count) > 15))}
             >
               {loading ? 'Submitting...' : 'Submit'}

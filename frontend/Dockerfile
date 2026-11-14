@@ -1,17 +1,13 @@
 # =========================
 # Build stage
 # =========================
-FROM node:20.11.1-alpine3.19 AS builder
+FROM node:24-bookworm-slim AS builder
 WORKDIR /app
 
-RUN apk update && apk upgrade --no-cache
-# RUN npm install --package-lock-only
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY package.json ./
-RUN npm install
-
-# COPY package.json package-lock.json ./
-# RUN npm ci
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 RUN npm run build
@@ -19,7 +15,7 @@ RUN npm run build
 # =========================
 # Runtime stage (DISTROLESS)
 # =========================
-FROM gcr.io/distroless/nodejs20-debian12
+FROM gcr.io/distroless/nodejs24-debian13
 WORKDIR /app
 
 # Copy standalone output only
@@ -31,7 +27,7 @@ COPY --from=builder /app/public ./public
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TMPDIR=/tmp
-ENV HOST=0.0.0.0
+ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
 

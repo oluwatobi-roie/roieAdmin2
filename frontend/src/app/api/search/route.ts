@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   try {
     // ✅ Use Apache-proxied /api/ path instead of hitting 127.0.0.1:5000 directly
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/search?term=${encodeURIComponent(term)}`,
+      `${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/search?term=${encodeURIComponent(term)}`,
       {
         method: "GET",
         headers: {

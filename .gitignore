@@ -51,3 +51,21 @@ node_modules/
 # .gitignore
 __pycache__/
 *.pyc
+
+DEPLOYMENT.md
+FINANCE.md
+Tools/*
+
+# Local invoice ledger and test environment
+backend/data/
+.finance-test-venv/
+frontend/.next/
+
+# Isolated build for finance browser checks
+frontend/.next-finance-qa/
+
+# Generated invoice QA samples
+/output/pdf/
+
+# Server-only deployment releases and state
+.deploy/

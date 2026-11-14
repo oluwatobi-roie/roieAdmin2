@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('Proxy received body:', body);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/link_device`, {
+    const res = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/link_device`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

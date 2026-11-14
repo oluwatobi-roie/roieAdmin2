@@ -50,7 +50,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4 py-10">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 py-10">
       
       {/* Logo on top of the card */}
       <div className="mb-8 flex justify-center">
@@ -60,7 +60,7 @@ export default function LoginPage() {
       {/* Login Card */}
       <Card className="w-full max-w-md shadow-xl rounded-3xl bg-white">
         <CardContent className="p-10 space-y-8">
-          <h1 className="text-3xl font-bold text-center text-[#414095]">
+          <h1 className="text-3xl font-bold text-center text-blue-900">
             Welcome Back
           </h1>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-[#428fda] to-[#414095] hover:from-[#414095] hover:to-[#428fda] text-white font-semibold py-3 rounded-xl shadow-md transition-all"
+              className="w-full bg-blue-800 hover:bg-blue-900 text-white font-semibold py-3 rounded-xl shadow-md transition-all"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
@@ -117,7 +117,7 @@ export default function LoginPage() {
             Don’t have an account?{" "}
             <a
               href="https://wa.me/+2348055302073"
-              className="text-[#428fda] hover:underline"
+              className="text-slate-500 hover:underline"
             >
               Chat with us on WhatsApp
             </a>

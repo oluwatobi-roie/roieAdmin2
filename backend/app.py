@@ -11,6 +11,7 @@ from routes.auth import auth_bp
 from routes.auth import login
 from routes.auth import logout
 from routes.auth import check_session
+from routes.finance import finance_bp
 
 
 
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/backend/auth')  # Registering the login blueprint
     app.register_blueprint(device_bp, url_prefix='/backend/device') # Registering the device blueprint
     app.register_blueprint(user_onboard_bp, url_prefix='/backend/user') # Registering the user onboarding blueprint
+    app.register_blueprint(finance_bp, url_prefix='/backend/finance')
     return app
 
 
