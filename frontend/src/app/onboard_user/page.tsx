@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ export default function OnboardUserPage() {
   const { auth_loading, authenticated } = useAuth();
 
   // ---------- FORM STATE ----------
+  const [createdEmail, setCreatedEmail] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -40,6 +42,7 @@ export default function OnboardUserPage() {
 
       if (res.ok) {
         setFeedback({ type: 'success', message: 'User onboarded successfully!' });
+        setCreatedEmail(email);
         setName('');
         setEmail('');
         setPhone('');
@@ -62,8 +65,8 @@ export default function OnboardUserPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">👤 Onboard New User</h1>
-        <p className="text-[#428fda] text-sm sm:text-base">
+        <h1 className="text-2xl sm:text-3xl font-bold text-teal-900">👤 Onboard New User</h1>
+        <p className="text-slate-500 text-sm sm:text-base">
           Enter user details to create a new account
         </p>
 
@@ -80,11 +83,13 @@ export default function OnboardUserPage() {
           </p>
         )}
 
+        {createdEmail && <Link className="inline-block rounded-lg bg-teal-800 px-5 py-3 text-sm font-medium text-white" href={`/finance?new=1&customer_email=${encodeURIComponent(createdEmail)}`}>Create invoice for this customer</Link>}
+        <Link className="block text-sm text-teal-800 underline" href="/finance?new=1">Back to finance</Link>
         {/* Form Card */}
-        <Card className="shadow-lg border border-[#428fda] rounded-xl bg-gradient-to-r from-[#e2e4f7] to-[#d6ebfa]">
+        <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center gap-2 text-gray-700">
-              <FiUser className="text-[#414095]" />
+              <FiUser className="text-teal-900" />
               <Input
                 type="text"
                 placeholder="Full Name"
@@ -95,7 +100,7 @@ export default function OnboardUserPage() {
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
-              <FiMail className="text-[#414095]" />
+              <FiMail className="text-teal-900" />
               <Input
                 type="email"
                 placeholder="Email Address"
@@ -106,7 +111,7 @@ export default function OnboardUserPage() {
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
-              <FiPhone className="text-[#414095]" />
+              <FiPhone className="text-teal-900" />
               <Input
                 type="tel"
                 placeholder="Phone Number"
@@ -119,7 +124,7 @@ export default function OnboardUserPage() {
             <Button
               onClick={handleOnboard}
               disabled={loadingForm}
-              className="w-full bg-[#428fda] hover:bg-[#414095] text-white mt-2"
+              className="w-full bg-teal-800 hover:bg-teal-900 text-white mt-2"
             >
               {loadingForm ? 'Onboarding...' : 'Onboard User'}
             </Button>

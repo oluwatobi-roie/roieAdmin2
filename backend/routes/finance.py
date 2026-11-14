@@ -1,18 +1,18 @@
 """Staff-only finance API. SQL access here is strictly read-only."""
 import copy
 import os
-import uuid
 from pathlib import Path
 
 import requests
-from flask import Blueprint, current_app, g, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request, send_file
 from sqlalchemy import text
 
 from config import TRACCAR_API_URL, db
 from routes.devices.common import admin_user_list, exclude_users_list
 from services.finance import (CATEGORIES, FinanceError, Ledger, audit, calculate_tasks,
     check_revision, clean_customer, clean_phone, clean_text, finalize, get_invoice,
-    invoice_view, prepare_entries, record_payment, save_draft)
+    invoice_view, invoice_totals, prepare_entries, record_payment, receipt_view, save_draft)
+from services.payment_proof import prepare_proof, save_proof
 
 finance_bp = Blueprint("finance", __name__)
 
@@ -31,7 +31,8 @@ def require_staff():
         # CORS only allows the configured admin origin; Next also checks same-origin.
         if request.headers.get("X-Finance-Request") != "1" or not request.is_json:
             raise FinanceError("A JSON finance request is required.", 403)
-        if request.content_length and request.content_length > 100000:
+        request.max_content_length = 7 * 1024 * 1024 if request.path.endswith("/payments") else 250000
+        if request.content_length and request.content_length > request.max_content_length:
             raise FinanceError("Request is too large.", 413)
     token = request.cookies.get("session_token")
     if not token:
@@ -44,11 +45,12 @@ def require_staff():
         user = response.json()
         if user.get("id") not in admin_user_list or user.get("disabled"):
             raise FinanceError("Staff access is required.", 403)
+        g.finance_can_cancel = user.get("id") == 1 and user.get("administrator") is True
         g.finance_actor = {"id": user["id"], "name": user.get("name", "Staff")}
     except (requests.RequestException, ValueError) as exc:
         if isinstance(exc, FinanceError):
             raise
-        raise FinanceError("Unable to verify your session with Traccar.", 503) from exc
+        raise FinanceError("Unable to verify your session with RoieTrackers.", 503) from exc
 
 
 @finance_bp.after_request
@@ -92,23 +94,25 @@ def customer_devices(user_id):
 
 
 def customer_from_body(payload):
-    customer = clean_customer(payload.get("customer"))
-    raw = payload["customer"]
-    uid = raw.get("traccar_user_id")
-    if uid is not None:
-        user = user_record(uid)
-        uid = user["id"]
-        profile_id = f"traccar-{uid}"
-    else:
-        profile_id = raw.get("profile_id") or f"prospect-{uuid.uuid4().hex}"
-        if not isinstance(profile_id, str) or not profile_id.startswith("prospect-"):
-            raise FinanceError("Invalid customer profile.")
-        if raw.get("profile_id"):
-            with ledger().transaction() as data:
-                if profile_id not in data["profiles"]:
-                    raise FinanceError("Customer profile not found.", 404)
-    customer.update(profile_id=profile_id, traccar_user_id=uid)
+    raw = payload.get("customer")
+    if not isinstance(raw, dict) or raw.get("traccar_user_id") is None:
+        raise FinanceError("Onboard the customer first, then select their RoieTrackers account.")
+    user = user_record(raw["traccar_user_id"])
+    if raw.get("name") != user["name"] or raw.get("email") != user["email"]:
+        raise FinanceError("Customer name and email must match their RoieTrackers account. Reload the customer.")
+    customer = clean_customer({**raw, "name": user["name"], "email": user["email"]})
+    customer.update(profile_id=f"traccar-{user['id']}", traccar_user_id=user["id"])
     return customer
+
+
+@finance_bp.get("/permissions")
+def permissions():
+    return jsonify(can_cancel=g.finance_can_cancel)
+
+
+@finance_bp.post("/validate-customer")
+def validate_customer():
+    return jsonify(customer=customer_from_body(body()))
 
 
 @finance_bp.get("/categories")
@@ -120,7 +124,7 @@ def categories():
 def customers():
     term = request.args.get("term", "").strip()
     with ledger().transaction() as data:
-        profiles = [p for p in data["profiles"].values() if term.lower() in
+        profiles = [p for p in data["profiles"].values() if p.get("traccar_user_id") and term.lower() in
                     f"{p['name']} {p['email']} {p['phone']}".lower()]
     matches = []
     if term:
@@ -139,9 +143,10 @@ def customer_detail(user_id):
     with ledger().transaction() as data:
         profile = copy.deepcopy(data["profiles"].get(f"traccar-{user_id}", {}))
     # Billing contact details may differ; use the saved billing profile on regeneration.
-    customer = {"name": user["name"], "email": user["email"], "phone": user["phone"] or "", **profile,
+    customer = {**profile, "name": user["name"], "email": user["email"], "phone": user["phone"] or profile.get("phone", ""),
                 "profile_id": f"traccar-{user_id}", "traccar_user_id": user_id}
-    return jsonify(customer=customer, devices=customer_devices(user_id), traccar_phone=user["phone"] or "")
+    devices = customer_devices(user_id)
+    return jsonify(customer=customer, devices=devices, account_phone=user["phone"] or "", vehicle_count=len(devices))
 
 
 @finance_bp.post("/customers/<int:user_id>/phone")
@@ -155,9 +160,9 @@ def sync_phone(user_id):
         response.raise_for_status()
         current = response.json()
         if current.get("id") != user_id:
-            raise FinanceError("Traccar returned a different customer.", 502)
+            raise FinanceError("RoieTrackers returned a different customer.", 502)
         if (current.get("phone") or "") != payload.get("expected_phone", ""):
-            raise FinanceError("Traccar phone changed. Reload the customer before updating it.", 409)
+            raise FinanceError("RoieTrackers phone changed. Reload the customer before updating it.", 409)
         # Traccar PUT expects the user object: preserve everything and change only phone.
         current["phone"] = phone
         response = requests.put(TRACCAR_API_URL + f"users/{user_id}", cookies=cookies,
@@ -175,13 +180,14 @@ def preview():
     payload = body()
     customer = customer_from_body(payload)
     entries = prepare_entries(payload.get("entries"), customer_devices(customer["traccar_user_id"]))
-    return jsonify(customer=customer, entries=entries, total_minor=sum(e["total_minor"] for e in entries))
+    return jsonify(customer=customer, entries=entries, **invoice_totals(entries, payload.get("discount")))
 
 
 @finance_bp.post("/calculate")
 def calculate():
-    results = calculate_tasks(body().get("entries"))
-    return jsonify(entries=results, total_minor=sum(e["total_minor"] for e in results))
+    payload = body()
+    results = calculate_tasks(payload.get("entries"))
+    return jsonify(entries=results, **invoice_totals(results, payload.get("discount")))
 
 
 @finance_bp.get("/invoices")
@@ -223,8 +229,13 @@ def issue(invoice_id):
         snapshot = copy.deepcopy(get_invoice(data, invoice_id))
     customer = snapshot["customer"]
     if snapshot["status"] == "draft":
-        if customer["traccar_user_id"] is not None:
-            user_record(customer["traccar_user_id"])
+        if customer["traccar_user_id"] is None:
+            raise FinanceError("Select an onboarded customer before finalizing this draft.", 409)
+        current = user_record(customer["traccar_user_id"])
+        if customer["name"] != current["name"] or customer["email"] != current["email"]:
+            raise FinanceError("Customer identity changed. Reload the customer and review the draft.", 409)
+        if any(not entry["device"] and entry["category"] not in ("installation", "special") for entry in snapshot["entries"]):
+            raise FinanceError("Select vehicles for every renewal and maintenance task before finalizing.", 409)
         valid = {d["id"] for d in customer_devices(customer["traccar_user_id"])}
         if any(e["device"] and e["device"]["id"] not in valid for e in snapshot["entries"]):
             raise FinanceError("A selected device is no longer on this account. Edit the draft.", 409)
@@ -237,8 +248,11 @@ def issue(invoice_id):
 @finance_bp.post("/invoices/<invoice_id>/payments")
 def payment(invoice_id):
     payload = body()
-    with ledger().transaction(write=True) as data:
-        result = invoice_view(record_payment(get_invoice(data, invoice_id), payload, g.finance_actor))
+    proof, content = prepare_proof(payload.get("proof"))
+    store = ledger()
+    with store.transaction(write=True) as data:
+        result = invoice_view(record_payment(get_invoice(data, invoice_id), {**payload, "proof": proof}, g.finance_actor))
+        save_proof(store.directory, proof, content)
     return jsonify(result)
 
 
@@ -257,7 +271,7 @@ def link_device(invoice_id):
         if invoice["status"] == "void":
             raise FinanceError("A void invoice cannot be linked.", 409)
         entry = next((e for e in invoice["entries"] if e["id"] == payload.get("entry_id")), None)
-        if not entry or entry["device"]:
+        if not entry or entry["device"] or entry["category"] != "installation":
             raise FinanceError("Select an entry that is awaiting a device.")
         if any(other["id"] != entry["id"] and other["device"] and
                other["device"]["id"] == selected["id"] and other["category"] == entry["category"] and
@@ -289,6 +303,8 @@ def link_customer(invoice_id):
 
 @finance_bp.post("/invoices/<invoice_id>/void")
 def void(invoice_id):
+    if not g.finance_can_cancel:
+        raise FinanceError("Only account 1 with the administrator role can cancel invoices.", 403)
     payload = body()
     reason = clean_text(payload.get("reason", ""), "Void reason", 500)
     with ledger().transaction(write=True) as data:
@@ -300,3 +316,42 @@ def void(invoice_id):
         audit(invoice, "voided", g.finance_actor, reason=reason)
         result = invoice_view(invoice)
     return jsonify(result)
+
+
+@finance_bp.get("/invoices/<invoice_id>/payments/<payment_id>/proof")
+def payment_proof(invoice_id, payment_id):
+    store = ledger()
+    with store.transaction() as data:
+        invoice = get_invoice(data, invoice_id)
+        payment = next((p for p in invoice["payments"] if p["id"] == payment_id), None)
+        if not payment or not payment.get("proof"):
+            raise FinanceError("Payment screenshot not found.", 404)
+        digest = payment["proof"]["sha256"]
+    import re
+    if not re.fullmatch(r"[a-f0-9]{64}", digest):
+        raise FinanceError("Payment screenshot not found.", 404)
+    path = store.directory / "payment-proofs" / f"{digest}.png"
+    if not path.is_file():
+        raise FinanceError("Payment screenshot is unavailable.", 404)
+    response = send_file(path, mimetype="image/png", download_name="payment-screenshot.png")
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@finance_bp.get("/invoices/<invoice_id>/receipts")
+def receipts(invoice_id):
+    with ledger().transaction() as data:
+        return jsonify(receipt_view(get_invoice(data, invoice_id), request.args.get("payment_id")))
+
+
+@finance_bp.get("/customers/<int:user_id>/summary")
+def customer_summary(user_id):
+    user_record(user_id)
+    with ledger().transaction() as data:
+        values = [invoice_view(i) for i in data["invoices"].values()
+                  if i["customer"].get("traccar_user_id") == user_id and i["status"] == "issued"]
+    paid = sum(i["paid_minor"] for i in values)
+    balance = sum(i["balance_minor"] for i in values)
+    status = "no_invoices" if not values else "paid" if balance == 0 else "partial" if paid else "unpaid"
+    return jsonify(vehicle_count=len(customer_devices(user_id)), finance_status=status,
+                   paid_minor=paid, balance_minor=balance)

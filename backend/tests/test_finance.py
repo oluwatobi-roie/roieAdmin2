@@ -84,7 +84,7 @@ class LedgerTests(unittest.TestCase):
 
     def create(self, data):
         return save_draft(data, self.payload, self.customer,
-            prepare_entries([{"category": "renewal", "total": "15000", "activity": "Annual subscription"}], []), ACTOR)
+            prepare_entries([{"category": "renewal", "total": "15000", "activity": "Annual subscription", "device_id": 10}], [{"id": 10, "name": "Corolla", "imei": "123"}]), ACTOR)
 
     def test_draft_issue_payment_retry_and_snapshot(self):
         with self.ledger.transaction(write=True) as data:
@@ -98,7 +98,7 @@ class LedgerTests(unittest.TestCase):
             finalize(data, invoice, {"revision": 1}, ACTOR)
             self.assertEqual(data["sequence"], 1)
             payment = {"revision": invoice["revision"], "request_key": "pay-1", "amount": "5000",
-                       "method": "bank_transfer", "paid_on": "2020-01-01", "reference": "BANK-001"}
+                       "method": "bank_transfer", "paid_on": "2020-01-01", "reference": "BANK-001", "proof": {"sha256": "a" * 64}}
             record_payment(invoice, payment, ACTOR)
             record_payment(invoice, payment, ACTOR)
             self.assertEqual(len(invoice["payments"]), 1)
@@ -118,7 +118,7 @@ class LedgerTests(unittest.TestCase):
             with self.assertRaises(FinanceError):
                 save_draft(data, {**self.payload, "revision": invoice["revision"]}, self.customer, [], ACTOR, invoice["id"])
             with self.assertRaises(FinanceError):
-                record_payment(invoice, {"revision": invoice["revision"], "request_key": "pay-1", "amount": "15000.01"}, ACTOR)
+                record_payment(invoice, {"revision": invoice["revision"], "request_key": "pay-1", "amount": "15000.01", "proof": {"sha256": "a" * 64}}, ACTOR)
 
     def test_failed_transaction_does_not_persist(self):
         with self.assertRaises(RuntimeError):

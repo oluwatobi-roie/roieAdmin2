@@ -1,3 +1,6 @@
+import base64
+import io
+from PIL import Image
 import copy
 import os
 import tempfile
@@ -10,6 +13,12 @@ from flask import Flask
 from sqlalchemy import text
 from config import db
 from routes.finance import finance_bp
+
+
+def screenshot(color="white"):
+    stream = io.BytesIO()
+    Image.new("RGB", (16, 16), color).save(stream, format="PNG")
+    return {"name": "payment.png", "data_url": "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode()}
 
 
 class FinanceApiTests(unittest.TestCase):
@@ -38,7 +47,7 @@ class FinanceApiTests(unittest.TestCase):
         self.client.set_cookie("session_token", "verified-session")
         self.headers = {"X-Finance-Request": "1"}
         self.session_response = Mock(status_code=200)
-        self.session_response.json.return_value = {"id": 1, "name": "Staff"}
+        self.session_response.json.return_value = {"id": 1, "name": "Staff", "administrator": True}
         self.get = self.enterContext(patch("routes.finance.requests.get", return_value=self.session_response))
         self.put = self.enterContext(patch("routes.finance.requests.put"))
         self.payload = {"request_key": "create-1", "customer": {
@@ -99,7 +108,7 @@ class FinanceApiTests(unittest.TestCase):
         linked = linked_response.json
         self.assertEqual(linked["total_minor"], invoice["total_minor"])
         paid_response = self.post(f"invoices/{invoice['id']}/payments", {"revision": linked["revision"],
-            "request_key": "pay-1", "amount": "140000", "method": "bank_transfer", "paid_on": "2020-01-01", "reference": "BANK-123"})
+            "request_key": "pay-1", "amount": "140000", "method": "bank_transfer", "paid_on": "2020-01-01", "reference": "BANK-123", "proof": screenshot()})
         self.assertEqual(paid_response.status_code, 200, paid_response.json)
         paid = paid_response.json
         self.assertEqual(paid["payment_status"], "paid")
@@ -126,13 +135,10 @@ class FinanceApiTests(unittest.TestCase):
             db.session.commit()
         self.assertEqual(self.post(f"invoices/{invoice['id']}/finalize", {"revision": invoice["revision"]}).status_code, 409)
 
-    def test_prospect_can_link_to_account_without_changing_snapshot(self):
+    def test_new_prospect_requires_onboarding(self):
         self.payload["customer"]["traccar_user_id"] = None
-        invoice = self.create()
-        response = self.post(f"invoices/{invoice['id']}/link-customer", {"revision": invoice["revision"], "user_id": 42})
-        self.assertEqual(response.status_code, 200, response.json)
-        self.assertEqual(response.json["customer"]["name"], invoice["customer"]["name"])
-        self.assertEqual(response.json["customer"]["traccar_user_id"], 42)
+        self.assertEqual(self.post("invoices", self.payload).status_code, 400)
+        self.assertEqual(self.client.get("/finance/invoices").json["invoices"], [])
 
     def test_customer_billing_profile_reused(self):
         self.create()
@@ -169,7 +175,7 @@ class FinanceApiTests(unittest.TestCase):
         invoice = self.create()
         invoice = self.post(f"invoices/{invoice['id']}/finalize", {"revision": invoice["revision"]}).json
         payment = {"revision": invoice["revision"], "request_key": "payment-1", "amount": "1000",
-                   "method": "cash", "paid_on": "2020-01-01", "reference": "REC-1"}
+                   "method": "cash", "paid_on": "2020-01-01", "reference": "REC-1", "proof": screenshot()}
         endpoint = f"invoices/{invoice['id']}/payments"
         self.assertEqual(self.post(endpoint, payment).status_code, 200)
         self.assertEqual(self.post(endpoint, payment).status_code, 200)

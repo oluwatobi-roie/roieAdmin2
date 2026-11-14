@@ -18,6 +18,7 @@ CATEGORIES = {
     "renewal": {"label": "Renewal", "default_total": "15000.00"},
     "installation": {"label": "New installation", "default_total": "140000.00"},
     "maintenance": {"label": "Maintenance", "default_total": "20000.00"},
+    "special": {"label": "Special Service", "default_total": "0.00"},
 }
 _thread_lock = threading.RLock()
 
@@ -51,10 +52,15 @@ def portion(total, numerator, denominator=100):
         Decimal("1"), rounding=ROUND_HALF_UP))
 
 
-def breakdown(category, total):
+def breakdown(category, total, item="", description=""):
     if not isinstance(category, str) or category not in CATEGORIES:
         raise FinanceError("Choose a valid invoice category.")
     amount = money(total)
+    if category == "special":
+        item = clean_text(item, "Special Service item", 200)
+        description = clean_text(description, "Special Service description", 2000)
+        return {"category": category, "total_minor": amount, "breakdown": [
+            {"label": item, "description": description, "amount_minor": amount}]}
     if category == "renewal":
         gprs = portion(amount, 80)
         parts = [("GPRS fee", gprs), ("Server fee", amount - gprs)]
@@ -193,6 +199,9 @@ def check_revision(invoice, body):
 
 def invoice_view(invoice):
     result = copy.deepcopy(invoice)
+    result.setdefault("subtotal_minor", sum(e["total_minor"] for e in invoice["entries"]))
+    result.setdefault("discount_minor", 0)
+    result.setdefault("discount", {"type": "none", "value": "0"})
     result["paid_minor"] = sum(p["amount_minor"] for p in invoice["payments"])
     result["balance_minor"] = invoice["total_minor"] - result["paid_minor"]
     result["payment_status"] = ("paid" if result["balance_minor"] == 0 else
@@ -200,10 +209,42 @@ def invoice_view(invoice):
     return result
 
 
+def invoice_totals(entries, raw_discount=None):
+    subtotal = sum(entry["total_minor"] for entry in entries)
+    raw = raw_discount if raw_discount is not None else {"type": "none", "value": "0"}
+    if not isinstance(raw, dict) or raw.get("type") not in ("none", "percent", "amount"):
+        raise FinanceError("Choose no discount, a percentage, or an amount.")
+    kind = raw["type"]
+    try:
+        value = Decimal(str(raw.get("value", "0")))
+        if not value.is_finite() or value < 0 or value > Decimal("1000000000") or value != value.quantize(Decimal("0.01")):
+            raise ValueError()
+    except (ValueError, InvalidOperation):
+        raise FinanceError("Discount must be a non-negative number with at most two decimal places.")
+    if kind == "percent" and value > 100:
+        raise FinanceError("Percentage discount cannot exceed 100%.")
+    if kind == "none":
+        value = Decimal(0)
+    discount = portion(subtotal, value) if kind == "percent" else int(value * 100)
+    if discount > subtotal:
+        raise FinanceError("Discount cannot exceed the invoice subtotal.")
+    return {"subtotal_minor": subtotal, "discount_minor": discount,
+            "discount": {"type": kind, "value": format(value, "f")}, "total_minor": subtotal - discount}
+
+
 def task_vehicles(raw, allow_empty=False):
     """Validate a grouped task. Quantity always comes from its vehicle list."""
+    if raw.get("category") == "special":
+        if raw.get("device_ids") or raw.get("pending_vehicles") or raw.get("pending_count") or raw.get("quantity", 1) != 1:
+            raise FinanceError("Special Service is one item with a description and amount.")
+        return [], [clean_text(raw.get("item", ""), "Special Service item", 200)]
     ids = raw.get("device_ids", [])
     pending = raw.get("pending_vehicles", [])
+    count = raw.get("pending_count", 0)
+    if type(count) is not int or not 0 <= count <= 1000:
+        raise FinanceError("Installation vehicle count must be a whole number from 0 to 1,000.")
+    if raw.get("category") != "installation" and (count or pending):
+        raise FinanceError("Renewal and maintenance require selecting account vehicles.")
     if not isinstance(ids, list) or not isinstance(pending, list):
         raise FinanceError("Vehicle selections must be lists.")
     if any(isinstance(i, bool) or not str(i).isdigit() or int(i) < 1 for i in ids):
@@ -212,6 +253,7 @@ def task_vehicles(raw, allow_empty=False):
     pending = [clean_text(name, "Pending vehicle / activity", 200) for name in pending]
     if len(set(ids)) != len(ids) or len({name.casefold() for name in pending}) != len(pending):
         raise FinanceError("Each vehicle must appear only once in a task.")
+    pending += [f"Installation {raw.get('task_index', 0) + 1} - vehicle {index + 1}" for index in range(count)]
     quantity = len(ids) + len(pending)
     if quantity > 1000 or (not allow_empty and quantity == 0):
         raise FinanceError("Select or name between 1 and 1,000 vehicles / activities per task.")
@@ -228,8 +270,8 @@ def calculate_tasks(raw_entries):
     for raw in raw_entries:
         if not isinstance(raw, dict):
             raise FinanceError("Invalid invoice task.")
-        unit = breakdown(raw.get("category"), raw.get("total"))
-        grouped = "device_ids" in raw or "pending_vehicles" in raw
+        unit = breakdown(raw.get("category"), raw.get("total"), raw.get("item", ""), raw.get("description", ""))
+        grouped = "device_ids" in raw or "pending_vehicles" in raw or "pending_count" in raw
         if grouped:
             ids, pending = task_vehicles(raw, allow_empty=True)
             quantity = len(ids) + len(pending)
@@ -250,8 +292,12 @@ def calculate_tasks(raw_entries):
 def prepare_entries(raw_entries, devices):
     calculate_tasks(raw_entries)
     expanded = []
-    for raw in raw_entries:
-        if "device_ids" in raw or "pending_vehicles" in raw:
+    for task_index, raw in enumerate(raw_entries):
+        raw = {**raw, "task_index": task_index}
+        if raw.get("category") == "special":
+            task_vehicles(raw)
+            expanded.append({**raw, "device_id": None, "vehicle_label": raw.get("item", "")})
+        elif "device_ids" in raw or "pending_vehicles" in raw or "pending_count" in raw:
             ids, pending = task_vehicles(raw)
             expanded.extend({**raw, "device_id": device_id} for device_id in ids)
             expanded.extend({**raw, "device_id": None, "vehicle_label": label} for label in pending)
@@ -261,22 +307,25 @@ def prepare_entries(raw_entries, devices):
     device_map = {str(device["id"]): device for device in devices}
     seen = set()
     for raw in expanded:
-        entry = breakdown(raw.get("category"), raw.get("total"))
+        entry = breakdown(raw.get("category"), raw.get("total"), raw.get("item", ""), raw.get("description", ""))
         device_id = raw.get("device_id")
         device = device_map.get(str(device_id)) if device_id not in (None, "") else None
         if device_id not in (None, "") and device is None:
             raise FinanceError("Selected device does not belong to this customer.")
         activity = clean_text(raw.get("activity", ""), "Activity / service period", 500, False)
         label = clean_text(raw.get("vehicle_label", ""), "Vehicle / activity name", 200, False)
+        if not device and entry["category"] not in ("installation", "special"):
+            raise FinanceError("Renewal and maintenance require selecting account vehicles.")
+        task_notes = clean_text(raw.get("task_notes", ""), "Task notes", 2000, False)
         if not device and not (label or activity):
             raise FinanceError("Describe the vehicle or activity when no device is selected.")
         identity = (entry["category"], activity.casefold(),
-                    f"device:{device['id']}" if device else f"pending:{(label or activity).casefold()}")
+                    f"device:{device['id']}" if device else f"pending:{raw.get('task_index', 0)}:{(label or activity).casefold()}")
         if identity in seen:
             raise FinanceError("A vehicle is repeated for the same task and service period.")
         seen.add(identity)
         entry.update({"id": uuid.uuid4().hex, "device": copy.deepcopy(device),
-                      "vehicle_label": label, "activity": activity,
+                      "vehicle_label": label, "activity": activity, "task_notes": task_notes,
                       "link_status": "linked" if device else
                       "pending_installation" if entry["category"] == "installation" else "activity_only"})
         entries.append(entry)
@@ -286,7 +335,7 @@ def prepare_entries(raw_entries, devices):
 def save_draft(data, body, customer, entries, actor, invoice_id=None):
     request_key = clean_text(body.get("request_key", ""), "Request key", 100)
     fingerprint = hashlib.sha256(json.dumps({key: body.get(key) for key in
-        ("customer", "entries", "notes", "due_date")}, sort_keys=True).encode()).hexdigest()
+        ("customer", "entries", "notes", "due_date", "discount")}, sort_keys=True).encode()).hexdigest()
     if not invoice_id:
         existing = next((i for i in data["invoices"].values() if i["request_key"] == request_key), None)
         if existing:
@@ -313,7 +362,7 @@ def save_draft(data, body, customer, entries, actor, invoice_id=None):
                    "created_at": now(), "status": "draft", "currency": "NGN", "revision": 0,
                    "payments": [], "events": []}
     invoice.update({"customer": copy.deepcopy(customer), "entries": entries,
-                    "total_minor": sum(e["total_minor"] for e in entries), "due_date": due_date,
+                    **invoice_totals(entries, body.get("discount")), "due_date": due_date,
                     "notes": notes})
     audit(invoice, "draft_saved", actor)
     data["invoices"][invoice["id"]] = invoice
@@ -336,11 +385,15 @@ def finalize(data, invoice, body, actor):
 
 def record_payment(invoice, body, actor):
     key = clean_text(body.get("request_key", ""), "Request key", 100)
+    proof = body.get("proof")
+    if not isinstance(proof, dict) or not re.fullmatch(r"[a-f0-9]{64}", str(proof.get("sha256", ""))):
+        raise FinanceError("Attach a payment screenshot before recording payment.")
     previous = next((p for p in invoice["payments"] if p["request_key"] == key), None)
     if previous:
         if (previous["amount_minor"] != money(body.get("amount")) or
                 previous["method"] != body.get("method") or previous["paid_on"] != body.get("paid_on") or
-                previous["reference"] != clean_text(body.get("reference", ""), "Payment reference", 250)):
+                previous["reference"] != clean_text(body.get("reference", ""), "Payment reference", 250) or
+                previous.get("proof", {}).get("sha256") != proof["sha256"]):
             raise FinanceError("This request already recorded a different payment. Reload the invoice.", 409)
         return invoice
     check_revision(invoice, body)
@@ -361,6 +414,31 @@ def record_payment(invoice, body, actor):
     invoice["payments"].append({"id": uuid.uuid4().hex, "request_key": key,
         "amount_minor": amount, "method": method, "paid_on": paid_on.isoformat(),
         "reference": clean_text(body.get("reference", ""), "Payment reference", 250),
-        "recorded_at": now(), "recorded_by": actor})
+        "recorded_at": now(), "recorded_by": actor, "proof": proof,
+        "receipt_number": f"{invoice['number']}-R{len(invoice['payments']) + 1:03d}"})
     audit(invoice, "payment_recorded", actor, amount_minor=amount)
     return invoice
+
+
+def receipt_view(invoice, payment_id=None):
+    payments = invoice["payments"]
+    if not payments:
+        raise FinanceError("No payments have been recorded for this invoice.", 409)
+    if payment_id:
+        index = next((index for index, payment in enumerate(payments) if payment["id"] == payment_id), None)
+        if index is None:
+            raise FinanceError("Payment not found.", 404)
+        selected = [payments[index]]
+        cumulative = payments[:index + 1]
+        number = selected[0].get("receipt_number", f"{invoice['number']}-R{index + 1:03d}")
+    else:
+        selected = cumulative = payments
+        number = f"{invoice['number']}-ALL-{len(payments):03d}"
+    return {"number": number, "invoice_number": invoice["number"], "invoice_id": invoice["id"],
+        "customer": copy.deepcopy(invoice["customer"]), "currency": "NGN",
+        "as_of": selected[-1]["recorded_at"], "kind": "payment" if payment_id else "combined",
+        "payments": [{key: payment.get(key) for key in ("id", "receipt_number", "amount_minor", "method", "paid_on", "reference")} for payment in selected],
+        "invoice_total_minor": invoice["total_minor"],
+        "received_minor": sum(payment["amount_minor"] for payment in selected),
+        "cumulative_paid_minor": sum(payment["amount_minor"] for payment in cumulative),
+        "balance_minor": invoice["total_minor"] - sum(payment["amount_minor"] for payment in cumulative)}

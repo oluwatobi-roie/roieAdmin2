@@ -47,3 +47,37 @@ test('legacy pending names containing commas and quotes do not inflate quantity 
   assert.equal(payload.quantity, 1);
   assert.equal(payload.pending_vehicles[0], name);
 });
+
+test('pending installation count and linked vehicles sum to the billed quantity', () => {
+  const task = { ...finance.newEntry(), category: 'installation', pending_count: 3, device_ids: ['1', '2'] };
+  assert.equal(finance.taskQuantity(task), 5);
+  assert.equal(finance.taskPayload([task])[0].quantity, 5);
+});
+test('special services retain item and description across draft editing', () => {
+  const entry = makeEntry(1, { category: 'special', device: null, breakdown: [{ label: 'Wiring repair', description: 'Replace damaged cable', amount_minor: 1500000 }] });
+  const task = finance.entriesToTasks([entry])[0];
+  assert.equal(task.item, 'Wiring repair');
+  assert.equal(task.description, 'Replace damaged cable');
+  assert.equal(task.pending_vehicles, '');
+  assert.equal(finance.taskQuantity(task), 1);
+});
+test('task explanations keep separate pricing groups', () => {
+  assert.equal(finance.groupEntries([makeEntry(1, { task_notes: 'First year' }), makeEntry(2, { task_notes: 'Additional coverage' })]).length, 2);
+});
+const contentSource = fs.readFileSync(path.join(__dirname, '../src/lib/invoice-content.ts'), 'utf8');
+const contentSandbox = { exports: {} };
+vm.runInNewContext(ts.transpileModule(contentSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, contentSandbox);
+test('installation items use requested code order without changing stored amounts', () => {
+  const breakdown = [{ label: 'GPRS fee', amount_minor: 1204000 }, { label: 'Server fee', amount_minor: 336000 }, { label: 'Installation', amount_minor: 1960000 }, { label: 'Device', amount_minor: 10500000 }];
+  const rows = contentSandbox.exports.invoiceItems({ category: 'installation', breakdown });
+  assert.equal(rows.map(row => row.label).join(','), 'GPS_D_V4,GPRS_GSM,GPS_Server_Maintenance,Installation');
+  assert.equal(rows.map(row => row.amount_minor).join(','), '10500000,1204000,336000,1960000');
+  assert.equal(breakdown[0].label, 'GPRS fee');
+});
+
+test('identical special services remain separate editable items', () => {
+  const entry = makeEntry(1, { category: 'special', device: null, breakdown: [{ label: 'Call out', description: 'Technician visit', amount_minor: 1500000 }] });
+  const tasks = finance.entriesToTasks([entry, { ...entry, id: '2' }]);
+  assert.equal(tasks.length, 2);
+  assert.equal(tasks.reduce((sum, task) => sum + finance.taskQuantity(task), 0), 2);
+});

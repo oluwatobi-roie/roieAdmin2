@@ -141,13 +141,13 @@ export default function SearchPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#414095]">👤Search Records</h1>
-        <p className="text-[#428fda] text-sm sm:text-base">Search devices or users by name, IMEI, or email</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-teal-900">👤Search Records</h1>
+        <p className="text-slate-500 text-sm sm:text-base">Search devices or users by name, IMEI, or email</p>
 
         {/* Search Input */}
         <div className="flex gap-3 justify-center flex-wrap">
           <Input type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 max-w-md" />
-          <Button onClick={handleSearch} disabled={loading} className="bg-[#414095] hover:bg-[#428fda] text-white">
+          <Button onClick={handleSearch} disabled={loading} className="bg-teal-800 hover:bg-teal-900 text-white">
             {loading ? 'Searching...' : 'Search'}
           </Button>
         </div>
@@ -158,8 +158,8 @@ export default function SearchPage() {
         {/* User Profile */}
         {userProfile && (
           <section className="mt-6">
-            <h2 className="text-xl font-semibold text-[#414095] mb-2 flex items-center gap-2"><FiUser className="text-[#428fda]" /> User Profile</h2>
-            <Card className="shadow-lg border border-[#428fda] hover:shadow-2xl transition-shadow bg-[#e8f0fb] rounded-xl">
+            <h2 className="text-xl font-semibold text-teal-900 mb-2 flex items-center gap-2"><FiUser className="text-slate-500" /> User Profile</h2>
+            <Card className="shadow-sm border border-slate-200 hover:shadow-md transition-shadow bg-white rounded-xl">
               <CardContent className="p-4 space-y-2 text-gray-800">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold flex items-center gap-2"><FiUser /> {userProfile.name}</h3>
@@ -179,9 +179,9 @@ export default function SearchPage() {
         {/* Devices List */}
         {results.length > 0 && (
           <section className="mt-6 space-y-4">
-            <h2 className="text-xl font-semibold text-[#414095] mb-2 flex items-center gap-2"><FiSmartphone className="text-[#428fda]" /> Devices</h2>
+            <h2 className="text-xl font-semibold text-teal-900 mb-2 flex items-center gap-2"><FiSmartphone className="text-slate-500" /> Devices</h2>
             {results.map((device: Device, idx) => (
-              <Card key={idx} className="shadow-lg border border-[#428fda] hover:shadow-2xl transition-shadow bg-gradient-to-r from-[#e2e4f7] to-[#d6ebfa] rounded-xl relative">
+              <Card key={idx} className="shadow-sm border border-slate-200 hover:shadow-md transition-shadow bg-white rounded-xl relative">
                 <CardContent className="p-4 space-y-2 text-gray-800">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold flex items-center gap-2"><FiCpu /> {device.device_name}</h3>
@@ -205,15 +205,15 @@ export default function SearchPage() {
 
                   {device.user_profiles && (
                     <div className="mt-3">
-                      <h4 className="text-sm font-semibold text-[#414095] mb-1">👥 Attached Users</h4>
+                      <h4 className="text-sm font-semibold text-teal-900 mb-1">👥 Attached Users</h4>
                       <div className="space-y-2">
                         {device.user_profiles.map((user: UserProfile, i: number) => (
-                          <div key={i} className="flex justify-between items-center bg-[#f0f4ff] p-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
+                          <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
                             <div className="text-gray-800 text-sm">
                               <p className="font-medium">{user.name}</p>
                               <p className="text-gray-600">{user.email}</p>
                               <p className="text-gray-500">Status: <span className="font-semibold">{user.status}</span> | Expiry: {new Date(user.expiry).toLocaleDateString()}</p>
-                              {user.id && <details className="mt-2"><summary className="cursor-pointer text-[#414095]">Vehicle finance history</summary><FinanceHistory userId={user.id} deviceId={device.device_id} /></details>}
+                              {user.id && <details className="mt-2"><summary className="cursor-pointer text-teal-900">Vehicle finance history</summary><FinanceHistory userId={user.id} deviceId={device.device_id} /></details>}
                             </div>
                           </div>
                         ))}
@@ -222,7 +222,7 @@ export default function SearchPage() {
                   )}
 
                   <div className="mt-3">
-                    <Button onClick={() => openAssignModal(device)} className="bg-[#428fda] hover:bg-[#414095] text-white">Assign to a User</Button>
+                    <Button onClick={() => openAssignModal(device)} className="bg-teal-800 hover:bg-teal-900 text-white">Assign to a User</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -236,11 +236,11 @@ export default function SearchPage() {
       {isModalOpen && selectedDevice && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
           <div className="bg-white p-6 rounded-xl shadow-2xl w-80 sm:w-96">
-            <h2 className="text-lg sm:text-xl font-bold mb-3 text-[#414095]">Assign Device: {selectedDevice.device_name}</h2>
-            <Input type="email" placeholder="Enter user email" className="w-full mb-4 border-[#428fda] focus:ring-[#414095]" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <h2 className="text-lg sm:text-xl font-bold mb-3 text-teal-900">Assign Device: {selectedDevice.device_name}</h2>
+            <Input type="email" placeholder="Enter user email" className="w-full mb-4 border-slate-200 focus:ring-teal-700" value={email} onChange={(e) => setEmail(e.target.value)} />
             <div className="flex justify-end gap-3">
               <Button onClick={() => setIsModalOpen(false)} variant="secondary">Cancel</Button>
-              <Button onClick={handleAssign} disabled={assignLoading} className="bg-[#428fda] hover:bg-[#414095] text-white">
+              <Button onClick={handleAssign} disabled={assignLoading} className="bg-teal-800 hover:bg-teal-900 text-white">
                 {assignLoading ? 'Assigning...' : 'Assign'}
               </Button>
             </div>

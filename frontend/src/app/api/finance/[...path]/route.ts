@@ -24,6 +24,9 @@ async function proxy(req: NextRequest, context: { params: Promise<{ path: string
       cache: 'no-store',
       signal: AbortSignal.timeout(45000),
     });
+    if (response.ok && req.method === 'GET' && path.at(-1) === 'proof' && response.headers.get('content-type')?.startsWith('image/png')) {
+      return new NextResponse(await response.arrayBuffer(), { status: response.status, headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+    }
     const data = await response.json().catch(() => ({ error: 'Finance service could not complete this request.' }));
     return NextResponse.json(data, { status: response.status, headers: { 'Cache-Control': 'no-store' } });
   } catch {

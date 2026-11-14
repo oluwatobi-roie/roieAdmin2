@@ -1,78 +1,107 @@
-# Finance module
+﻿# Finance module
 
-Open **Finance → Generate invoice**, or generate one from a customer's search profile.
+## Staff workflow
 
-1. Find an existing Traccar customer, reuse a saved billing profile, or enter a new customer before onboarding.
-2. Confirm name, email, phone and billing address. **Update phone in Traccar** explicitly synchronizes the phone; address and other billing edits stay in finance.
-3. Add one or more tasks. Select a category to load its default price per vehicle, then adjust that unit price. Select customer vehicles in bulk, or name pending vehicles in a comma-separated list. Quantity is derived from the list, and calculations refresh automatically.
-4. Review the invoice and save a draft. Open the saved draft to edit or finalize it. Finalization assigns a unique invoice number and fixes the billing contact snapshot and prices.
-5. Print or save a PDF using the browser's print dialog. Reopening the invoice uses the stored snapshot, not current pricing or contact information.
-6. Record payments with amount, method, received date and transaction/receipt reference. Partial payments and outstanding balances are supported. Recording does not charge a customer or modify a Traccar subscription.
+Open **Finance → Generate invoice**, or use **Generate invoice** on a customer profile.
+
+1. **Customer:** Find an existing RoieTrackers account. Name and email are read-only and validated against the account on the server. Phone is loaded when available. The last saved billing address is reused. New customers must use the existing onboarding page; its success link returns to finance with that customer selected.
+2. **Task:** Choose Renewal, New installation, Maintenance, or Special Service. Standard categories load their default negotiated price per vehicle. Renewal and maintenance require actual account vehicles. For installation, enter a count of vehicles awaiting installation, select already installed vehicles, or combine both. Special Service takes one item, its description, and amount. Each task can include explanatory notes.
+3. **Task list:** Edit, remove or add another task. Quantity comes from the selected vehicles and pending installation count.
+4. **Terms:** Set a due date, invoice notes, and an optional percentage or fixed NGN discount. Discount is deducted once from the subtotal, after the item allocations.
+5. **Review:** Confirm the calculated invoice and save a draft. Edit it if needed, then finalize. Finalization assigns a unique invoice number and locks the billing snapshot and amounts.
+
+Use **Update phone in RoieTrackers** to explicitly synchronize a changed/missing phone. Saving an invoice alone stores the billing contact; it does not update the account. Addresses remain in finance. The existing onboarding flow creates customer accounts; finance itself cannot create them.
+
+## Invoice and receipt layout
+
+Invoices group identical prices, service periods and task explanations. Each section shows **Item / Qty / Price / Amount**, a comma-separated vehicle list and a subtotal. Long vehicle lists stay inside the invoice; the mobile invoice list has separate customer and service columns.
+
+Installation items print in this order:
+
+1. **GPS_D_V4** — Intelligent GPS Tracker Device for Automobile
+2. **GPRS_GSM** — GSM Access Fee for 12 months per module (MTN)
+3. **GPS_Server_Maintenance** — Global Server App License Fee for 1 year per module
+4. **Installation** — Logistics, Installation
+
+Renewals show the GPRS and server items. Maintenance shows service and logistics. Special Service prints the entered item and description. Historical invoices retain their stored amounts; display codes do not recalculate prices.
+
+All invoices include **GTBank / 0421439134 / Roie Technologies Ltd**. The supplied 14 sales terms and a signature/date area appear only when at least one installation is present. Payment status appears as an angled stamp beside Bill to: unpaid red, partial yellow, fully paid green. Draft and cancelled documents retain explicit labels.
+
+Use **Print / save PDF** for the customer document. Staff controls, activity history and payment screenshots are excluded from printing.
+
+## Payments and cancellation
+
+Every new payment requires amount, method, date, reference, and a PNG, JPEG or WebP screenshot (up to 4 MB and 20 megapixels). The server decodes and normalizes the image to PNG before saving it privately. Screenshots are accessible only through the authenticated staff API.
+
+Each payment has a stable receipt number. **Receipt** generates the individual payment receipt with the balance as of that recorded payment. Later payments do not change that historical balance. **Combined receipt** includes all payments currently recorded on the invoice. Neither receipt exposes staff identity or screenshot contents.
+
+Cancellation requires **account ID 1 AND a live administrator role**. Other staff cannot cancel through either the UI or API. Paid/partially paid invoices cannot be cancelled through this workflow. Cancellation preserves the record and its reason in the audit history. Refunds/reversals are not implemented.
+
+Customer profiles show the distinct number of associated vehicles, whole-account finance status and outstanding balance, plus linked invoice/payment history. Vehicle history filters whole invoices containing that vehicle; payments are recorded per invoice rather than allocated artificially across vehicles.
 
 ## Allocation rules
 
-Amounts are stored in **integer kobo**, calculated on the server, with rounding remainders assigned to the final component so totals always match exactly.
+All money is calculated server-side and stored in integer kobo. Rounding remainders keep component totals exact.
 
-| Category | Default per vehicle | Breakdown |
+| Category | Default per vehicle | Allocation |
 | --- | ---: | --- |
 | Renewal | NGN 15,000 | GPRS 80%; server 20% |
-| New installation | NGN 140,000 | GPRS max(8.6% of total, NGN 12,000); server max(2.4% of total, NGN 3,000); remaining amount split installation:device = 14:75 |
+| New installation | NGN 140,000 | GPRS max(8.6%, NGN 12,000); server max(2.4%, NGN 3,000); remainder split installation:device = 14:75 |
 | Maintenance | NGN 20,000 | Service 60%; logistics 40% |
+| Special Service | Enter amount | One custom item at the entered amount |
 
-At NGN 140,000, installation components are NGN 12,040 / 3,360 / 19,600 / 105,000.
-At NGN 100,000, they are NGN 12,000 / 3,000 / 13,370.79 / 71,629.21.
-Installation totals below NGN 15,000 are rejected. At exactly NGN 15,000, installation and device allocations are zero.
+At NGN 100,000 per installation, allocations are GPRS 12,000, server 3,000, installation 13,370.79 and device 71,629.21. Installation prices below NGN 15,000 are rejected. Minimums apply per vehicle before any invoice-level discount.
 
-## Customer and vehicle relationships
+For 68 renewals at NGN 15,000, GPRS is 68 × NGN 12,000 = NGN 816,000 and server is 68 × NGN 3,000 = NGN 204,000. The vehicle list contains 68 vehicles and the section subtotal is NGN 1,020,000. There is a limit of 1,000 entries per invoice.
 
-Each task selects multiple devices belonging directly to the customer or to a group linked to that customer. Internally, each billed vehicle retains its own entry and device reference so existing invoices and vehicle history remain compatible. Device ownership is checked when saving and finalizing, and when linking later.
+Device ownership is checked when saving, finalizing and linking after installation. Use the normal account/device workflow to install and associate a vehicle, then reload the invoice and choose **Link device**. This only changes the finance relationship, never the account's actual device assignment.
 
-A task without devices requires a name for each pending vehicle/activity. Separate names with commas or newlines; quote names containing commas. Every name counts as one unit. The backend rejects mismatched quantities and duplicate vehicle assignments for the same category and service period. New installation entries are marked as pending installation. After installation and the normal Traccar device assignment, reload the invoice and use **Link device**. This changes only the finance reference and adds an audit event. It never assigns or edits a Traccar device.
+## Storage and deployment
 
-A customer without a Traccar account gets a finance-only prospect profile. After onboarding, use **Link customer after onboarding** on the invoice, then link the device. This preserves the original printed contact details. If a prospect has several invoices, link each applicable invoice explicitly.
+No SQL tables or columns are added. Finance reads the existing customer/device tables and stores its own records in a locked, atomic JSON ledger. Its sole account write is the explicit phone PUT, based on a freshly retrieved user object while preserving other fields. A changed phone since loading is detected; the account API does not support atomic phone-only updates, so avoid simultaneous edits of that account while syncing.
 
-Customer search profiles include finance/payment history. Vehicle history filters invoices containing that vehicle; payment totals are **invoice-level**, not an inferred allocation of payments to individual vehicles.
+`FINANCE_DATA_DIR` contains:
 
-## Persistence and operations
+- `ledger.json`: customers, invoices, payments, sequence and audit history.
+- `ledger.lock`: stable lock for coordinating workers.
+- `payment-proofs/`: normalized, content-addressed payment screenshots.
 
-No tables or columns are added to the existing database. The module only reads existing Traccar SQL tables. Its sole Traccar write is the explicit customer-phone PUT, using a freshly retrieved user object and preserving all other fields. It detects a phone change since the customer was loaded; Traccar does not provide an atomic phone-only update, so avoid concurrent edits of the same account while syncing. Failed/uncertain updates ask staff to reload before retrying.
+Docker uses `/app/data/finance` in the persistent **finance_data** volume, writable by runtime UID 10003. Rebuild both backend and frontend to deploy code changes; the backend requirements now include Pillow for screenshot validation. Do not remove the finance volume during deployment.
 
-`FINANCE_DATA_DIR` defaults to `backend/data/finance`. In Docker Compose it is `/app/data/finance`, mounted from the persistent **finance_data** named volume. The image creates that directory for runtime UID 10003. Local ledger files are ignored by Git.
+Back up the **whole finance directory**, including payment proofs, to protected storage. For a live backup, copy the committed ledger first and then its referenced proofs; proof files are immutable and written before the ledger commit. For restore, stop backend writes and restore the full snapshot, including the invoice sequence and proofs, with the correct ownership. No automated backup job is supplied.
 
-The ledger uses a stable file lock across processes, a flushed temporary file, and atomic replacement. It supports the existing two Gunicorn workers on **one host with a local filesystem**. Do not deploy multiple independent backend volumes or put this ledger on an unverified network filesystem. Whole-ledger reads/writes suit an initial small deployment; use a dedicated document store when volume or deployment topology grows.
+The local JSON store supports multiple workers on one host and one local filesystem. It is not intended for multiple independent backend volumes or unverified network filesystems. All staff requests validate a live session and the existing staff allowlist. Mutations require JSON plus a custom header, and the Next proxy checks same-origin requests. Revisions reject stale edits; creation/payment retries are idempotent; corrupt ledgers fail closed.
 
-Back up `ledger.json` regularly to protected storage outside the container host, and test restoration. Copying the committed JSON file on the local filesystem observes an atomic version. Stop backend writes during restore, restore the complete ledger including its sequence, and retain UID 10003 write access in Docker. Never remove the finance volume with `docker compose down -v` unless intentionally discarding finance records. Restart/rebuild alone preserves it. There is no automated backup job in this change.
-
-Staff access is checked against a live Traccar session and the existing `admin_user_list`. Finance responses are not cached. Mutations require JSON and a custom request header, with same-origin enforcement in the Next proxy. Create/payment retries are idempotent; revisions reject stale edits. Corrupt ledgers fail closed rather than being overwritten. Only unpaid invoices can be voided. Payment reversal/refund workflows and automatic tax/payment-provider integrations are not included.
-
-The Next proxy uses `BACKEND_URL` if configured, otherwise the existing `NEXT_PUBLIC_BACKEND_URL`. Existing Traccar/database environment configuration is unchanged. Deploy with the normal backend/frontend rebuild so the new blueprint, route and volume are included.
+The Next finance proxy uses `BACKEND_URL`, falling back to `NEXT_PUBLIC_BACKEND_URL`. For laptop testing, keep the SSH tunnel open and use `python run_local.py` from `backend`. The launcher preserves DB credentials but routes the connection through `127.0.0.1:13306` and selects a local finance directory. See `MyComputer/notes.md` for exact PowerShell steps. Customer/device reads still use the live account database; explicit account actions still affect that account.
 
 ## Verification
 
-From `backend`, with backend dependencies installed:
+From `backend` with its dependencies installed:
 
 ```text
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -p "test_*.py"
 ```
 
-Tests use temporary JSON files, an in-memory SQLite fixture and mocked Traccar responses. They do not read/write live customer data. Coverage includes rounding/minimums, multi-process persistence, corruption handling, revisions/idempotency, authorization, ownership, billing snapshots, pending installations, payment history and phone-only updates.
+Tests use temporary JSON, in-memory SQLite and mocked remote responses. They cover calculations, quantity/ownership, persistence, permissions, identity, discounts, private screenshots, receipts and account summaries without contacting production.
 
 From `frontend`:
 
 ```text
 npx tsc --noEmit
-npx eslint src/app/finance/page.tsx "src/app/api/finance/[...path]/route.ts" src/components/FinanceHistory.tsx src/lib/finance.ts
+node --test tests/finance.test.cjs
+```
+
+Build separately for browser checks (PowerShell):
+
+```powershell
+$env:NEXT_BUILD_DIR = '.next-finance-qa'
 npm run build
 ```
 
-See the grouped browser-check instructions below for the isolated build, browser/PDF test dependencies and generated samples. Test servers stop on completion.
+Then from `backend`, with Playwright, PyMuPDF and Chrome installed:
 
-## Grouped invoice layout
+```text
+python tests/finance_browser_smoke.py
+```
 
-Printed invoices have separate Installations, Renewal and Maintenance sections. Each section contains **Breakdown / Qty / Unit price / Total**, a comma-separated vehicle list with its count, and a subtotal. Identical prices and service periods are grouped together. Different prices or periods use separate rate groups within the category; prices are never averaged. Saved invoices use their stored breakdowns rather than current defaults.
-
-For **68 renewals at NGN 15,000 per vehicle**, GPRS is 68 × NGN 12,000 = NGN 816,000 and server is 68 × NGN 3,000 = NGN 204,000. The vehicle list contains 68 vehicles and the renewal subtotal is NGN 1,020,000. Installation minimums apply to each vehicle. An invoice supports up to 1,000 vehicles/activities.
-
-Browser request keys use native `crypto.randomUUID` where available, with a `crypto.getRandomValues` UUID v4 fallback for HTTP/LAN browser contexts. No insecure random-number fallback is used.
-
-For grouped browser checks, build from `frontend` with `NEXT_BUILD_DIR=.next-finance-qa` (PowerShell: `$env:NEXT_BUILD_DIR = ".next-finance-qa"; npm run build`), then run `python tests/finance_browser_smoke.py` from `backend` with Playwright, PyMuPDF and Chrome installed. This separate build keeps the normal dev server's `.next` output untouched. The test disables `randomUUID`, exercises a 68-vehicle draft/edit/finalize flow, and renders renewal and mixed-task PDFs under ignored `MyComputer/finance-qa`. Frontend regression tests run with `node --test tests/finance.test.cjs` from `frontend`.
+The browser test uses loopback ports 5057/3107, temporary records, mocked sessions and the isolated build. It verifies the guided flow, mobile layout, 68-vehicle invoices, proof uploads and receipts, including PDF text checks and rendered page images. PDFs are under ignored `output/pdf`; QA screenshots are under ignored `MyComputer/finance-qa`. Test servers stop on completion. The browser test deliberately disables `crypto.randomUUID` to exercise the secure `crypto.getRandomValues` fallback used on HTTP/LAN contexts.
