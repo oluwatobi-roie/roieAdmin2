@@ -11,7 +11,7 @@ export type Preview = Totals & { customer: Customer; entries: Entry[] };
 export type Payment = { id: string; receipt_number?: string; amount_minor: number; method: string; paid_on: string; reference: string; recorded_by: { name: string }; proof?: { sha256: string; name: string } };
 export type Receipt = { number: string; invoice_number: string; invoice_id: string; customer: Customer; as_of: string; kind: string; payments: Payment[]; invoice_total_minor: number; received_minor: number; cumulative_paid_minor: number; balance_minor: number };
 export type ProofInput = { name: string; data_url: string };
-export type CustomerSummary = { vehicle_count: number; finance_status: string; paid_minor: number; balance_minor: number };
+export type CustomerSummary = { vehicle_count: number; unpaid_invoice_count: number; finance_status: string; paid_minor: number; balance_minor: number };
 export type Invoice = Preview & {
   id: string; number: string | null; revision: number; request_key: string;
   status: 'draft' | 'issued' | 'void'; currency: string; created_at: string; issued_at?: string;

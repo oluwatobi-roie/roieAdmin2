@@ -56,8 +56,8 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-teal-800 transition-colors ${
-                pathname === link.href ? "font-semibold text-teal-800 underline underline-offset-8" : ""
+              className={`flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-blue-800 transition-colors ${
+                pathname === link.href ? "font-semibold text-blue-800 underline underline-offset-8" : ""
               }`}
               onClick={() => setMenuOpen(false)}
             >
@@ -68,7 +68,7 @@ export default function Header() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-teal-800 transition-colors"
+            className="flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-blue-800 transition-colors"
           >
             <FiLogOut /> Logout
           </button>

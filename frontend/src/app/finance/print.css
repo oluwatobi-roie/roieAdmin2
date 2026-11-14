@@ -28,17 +28,17 @@
 }
 .finance-card { border: 1px solid #e2e8f0; border-radius: 16px; background: white; padding: clamp(16px, 3vw, 24px); box-shadow: 0 2px 6px #0f172a03; }
 .finance-field { display: block; width: 100%; min-width: 0; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 9px; background: #fff; padding: 10px 12px; font-size: 14px; color: #0f172a; }
-.finance-field:focus { outline: 2px solid #0f766e; outline-offset: 2px; }
+.finance-field:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
 .finance-field[readonly] { background: #f1f5f9; color: #64748b; }
 .finance-button, .finance-secondary { display: inline-flex; justify-content: center; align-items: center; min-height: 42px; border-radius: 9px; padding: 10px 16px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background .15s; }
-.finance-button { color: white; background: #115e59; border: 1px solid #115e59; }
-.finance-button:hover { background: #134e4a; }
+.finance-button { color: white; background: #2563eb; border: 1px solid #2563eb; }
+.finance-button:hover { background: #1d4ed8; }
 .finance-secondary { color: #334155; background: white; border: 1px solid #cbd5e1; }
 .finance-secondary:hover { background: #f1f5f9; }
 .finance-button:disabled, .finance-secondary:disabled { opacity: .5; cursor: not-allowed; }
 .finance-error, .finance-notice { padding: 14px 16px; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; }
 .finance-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-.finance-notice { background: #f0fdfa; color: #115e59; border: 1px solid #99f6e4; }
+.finance-notice { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 .invoice-list-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 16px; align-items: center; }
 .invoice-list-label { display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: .09em; text-transform: uppercase; color: #64748b; }
 .invoice-list-amount { text-align: right; }
@@ -50,7 +50,9 @@
 .stamp-paid { color: #15803d; background: #f0fdf4; }
 .stamp-partial { color: #a16207; background: #fef9c3; }
 .stamp-unpaid, .stamp-void { color: #b91c1c; background: #fef2f2; }
-.invoice-bill-to { overflow-wrap: anywhere; }
+.invoice-bill-to { overflow-wrap: anywhere; justify-content: space-between; }
+.invoice-bill-to > :first-child { flex: 1; }
+.invoice-bill-to .payment-stamp { margin-left: auto; }
 @media (max-width: 600px) {
   .invoice-list-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
   .invoice-list-amount { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; text-align: left; border-top: 1px solid #f1f5f9; padding-top: 10px; }

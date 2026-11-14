@@ -354,4 +354,5 @@ def customer_summary(user_id):
     balance = sum(i["balance_minor"] for i in values)
     status = "no_invoices" if not values else "paid" if balance == 0 else "partial" if paid else "unpaid"
     return jsonify(vehicle_count=len(customer_devices(user_id)), finance_status=status,
-                   paid_minor=paid, balance_minor=balance)
+                   paid_minor=paid, balance_minor=balance,
+                   unpaid_invoice_count=sum(i["balance_minor"] > 0 for i in values))

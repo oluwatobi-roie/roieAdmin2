@@ -65,7 +65,7 @@ export default function OnboardUserPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-teal-900">👤 Onboard New User</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">👤 Onboard New User</h1>
         <p className="text-slate-500 text-sm sm:text-base">
           Enter user details to create a new account
         </p>
@@ -83,13 +83,13 @@ export default function OnboardUserPage() {
           </p>
         )}
 
-        {createdEmail && <Link className="inline-block rounded-lg bg-teal-800 px-5 py-3 text-sm font-medium text-white" href={`/finance?new=1&customer_email=${encodeURIComponent(createdEmail)}`}>Create invoice for this customer</Link>}
-        <Link className="block text-sm text-teal-800 underline" href="/finance?new=1">Back to finance</Link>
+        {createdEmail && <Link className="inline-block rounded-lg bg-blue-800 px-5 py-3 text-sm font-medium text-white" href={`/finance?new=1&customer_email=${encodeURIComponent(createdEmail)}`}>Create invoice for this customer</Link>}
+        <Link className="block text-sm text-blue-800 underline" href="/finance?new=1">Back to finance</Link>
         {/* Form Card */}
         <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white">
           <CardContent className="p-6 space-y-4">
             <div className="flex items-center gap-2 text-gray-700">
-              <FiUser className="text-teal-900" />
+              <FiUser className="text-blue-900" />
               <Input
                 type="text"
                 placeholder="Full Name"
@@ -100,7 +100,7 @@ export default function OnboardUserPage() {
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
-              <FiMail className="text-teal-900" />
+              <FiMail className="text-blue-900" />
               <Input
                 type="email"
                 placeholder="Email Address"
@@ -111,7 +111,7 @@ export default function OnboardUserPage() {
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
-              <FiPhone className="text-teal-900" />
+              <FiPhone className="text-blue-900" />
               <Input
                 type="tel"
                 placeholder="Phone Number"
@@ -124,7 +124,7 @@ export default function OnboardUserPage() {
             <Button
               onClick={handleOnboard}
               disabled={loadingForm}
-              className="w-full bg-teal-800 hover:bg-teal-900 text-white mt-2"
+              className="w-full bg-blue-800 hover:bg-blue-900 text-white mt-2"
             >
               {loadingForm ? 'Onboarding...' : 'Onboard User'}
             </Button>

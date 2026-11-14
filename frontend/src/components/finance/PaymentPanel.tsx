@@ -35,7 +35,7 @@ export default function PaymentPanel({ invoice, onUpdated, onReceipt }: { invoic
       <div className="sm:col-span-2"><Field label="Payment screenshot (required)"><input ref={fileInput} required type="file" accept="image/png,image/jpeg,image/webp" className={fieldClass} onChange={async event => {
         setProof(null); setError(''); const file = event.target.files?.[0]; if (!file) return;
         setBusy(true); try { setProof(await readProof(file)); } catch (error) { setError((error as Error).message); if (fileInput.current) fileInput.current.value = ''; } finally { setBusy(false); }
-      }} /></Field><p className="mt-2 text-xs text-slate-500">PNG, JPEG or WebP, up to 4 MB. Stored privately for staff; excluded from customer receipts.</p>{proof && <p className="mt-2 text-sm text-teal-800">Ready to attach: {proof.name}</p>}</div>
+      }} /></Field><p className="mt-2 text-xs text-slate-500">PNG, JPEG or WebP, up to 4 MB. Stored privately for staff; excluded from customer receipts.</p>{proof && <p className="mt-2 text-sm text-blue-800">Ready to attach: {proof.name}</p>}</div>
       <div className="sm:col-span-2"><button className={actionClass} disabled={!proof}>{busy ? 'Saving…' : 'Record payment'}</button></div>
     </fieldset></form>}
   </section>;

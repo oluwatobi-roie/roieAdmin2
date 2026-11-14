@@ -1,4 +1,4 @@
-﻿# Finance module
+# Finance module
 
 ## Staff workflow
 
@@ -25,7 +25,7 @@ Installation items print in this order:
 
 Renewals show the GPRS and server items. Maintenance shows service and logistics. Special Service prints the entered item and description. Historical invoices retain their stored amounts; display codes do not recalculate prices.
 
-All invoices include **GTBank / 0421439134 / Roie Technologies Ltd**. The supplied 14 sales terms and a signature/date area appear only when at least one installation is present. Payment status appears as an angled stamp beside Bill to: unpaid red, partial yellow, fully paid green. Draft and cancelled documents retain explicit labels.
+All invoices include **GTBank / 0421439134 / Roie Technologies Ltd**. The supplied 14 sales terms and a signature/date area appear only when at least one installation is present. Payment status appears as an angled stamp at the far right of Bill to: unpaid red, partial yellow, fully paid green. Draft and cancelled documents retain explicit labels.
 
 Use **Print / save PDF** for the customer document. Staff controls, activity history and payment screenshots are excluded from printing.
 
@@ -37,7 +37,7 @@ Each payment has a stable receipt number. **Receipt** generates the individual p
 
 Cancellation requires **account ID 1 AND a live administrator role**. Other staff cannot cancel through either the UI or API. Paid/partially paid invoices cannot be cancelled through this workflow. Cancellation preserves the record and its reason in the audit history. Refunds/reversals are not implemented.
 
-Customer profiles show the distinct number of associated vehicles, whole-account finance status and outstanding balance, plus linked invoice/payment history. Vehicle history filters whole invoices containing that vehicle; payments are recorded per invoice rather than allocated artificially across vehicles.
+The user profile contact card shows the distinct asset count on the left and the number of unpaid invoices on the right. The unpaid count includes issued invoices with a remaining balance, including partial payments; drafts and cancelled invoices are excluded. Finance history and Devices are collapsed by default and expand to show their summaries and records. Attached users on device cards do not show finance history. Invoice step navigation uses Next and Previous, with Save draft as the final confirmation action. Brand accents use Roie blue; payment status stamps retain red, yellow and green.
 
 ## Allocation rules
 

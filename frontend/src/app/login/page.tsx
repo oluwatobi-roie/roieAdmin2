@@ -60,7 +60,7 @@ export default function LoginPage() {
       {/* Login Card */}
       <Card className="w-full max-w-md shadow-xl rounded-3xl bg-white">
         <CardContent className="p-10 space-y-8">
-          <h1 className="text-3xl font-bold text-center text-teal-900">
+          <h1 className="text-3xl font-bold text-center text-blue-900">
             Welcome Back
           </h1>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-teal-800 hover:bg-teal-900 text-white font-semibold py-3 rounded-xl shadow-md transition-all"
+              className="w-full bg-blue-800 hover:bg-blue-900 text-white font-semibold py-3 rounded-xl shadow-md transition-all"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}

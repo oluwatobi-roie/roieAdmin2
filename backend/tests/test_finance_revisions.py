@@ -152,15 +152,23 @@ class RevisedFinanceTests(unittest.TestCase):
         endpoint = '/finance/customers/42/summary'
         original = self.client.get(endpoint).json
         self.assertEqual(original['vehicle_count'], 2)
+        self.assertEqual(original['unpaid_invoice_count'], 0)
         self.assertEqual(original['finance_status'], 'no_invoices')
         invoice = self.issued()
         self.assertEqual(self.client.get(endpoint).json['finance_status'], 'unpaid')
+        self.assertEqual(self.client.get(endpoint).json['unpaid_invoice_count'], 1)
         paid = self.pay(invoice, '1000').json
         self.assertEqual(self.client.get(endpoint).json['finance_status'], 'partial')
+        self.assertEqual(self.client.get(endpoint).json['unpaid_invoice_count'], 1)
         self.pay(paid, '139000', 'payment-two')
         self.assertEqual(self.client.get(endpoint).json['finance_status'], 'paid')
         self.payload['request_key'] = 'other-draft'
         draft = self.create()
         self.post(f"invoices/{draft['id']}/void", {'revision': draft['revision'], 'reason': 'Cancelled'})
         self.assertEqual(self.client.get(endpoint).json['balance_minor'], 0)
+        self.assertEqual(self.client.get(endpoint).json['unpaid_invoice_count'], 0)
+        for index in range(2):
+            self.payload['request_key'] = f'unpaid-{index}'
+            self.issued()
+        self.assertEqual(self.client.get(endpoint).json['unpaid_invoice_count'], 2)
 
