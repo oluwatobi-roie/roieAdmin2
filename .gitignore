@@ -52,7 +52,9 @@ node_modules/
 __pycache__/
 *.pyc
 
-MyComputer/*
+DEPLOYMENT.md
+FINANCE.md
+Tools/*
 
 # Local invoice ledger and test environment
 backend/data/
@@ -64,3 +66,6 @@ frontend/.next-finance-qa/
 
 # Generated invoice QA samples
 /output/pdf/
+
+# Server-only deployment releases and state
+.deploy/

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const body: AddDeviceRequest = await req.json(); // <-- typed body
     console.log('Received body:', body);
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/add`, {
+    const res = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/add`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' ,
         cookie: req.headers.get("cookie") || ""

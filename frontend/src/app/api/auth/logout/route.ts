@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/backend/auth/logout`, {
+    const backendRes = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
