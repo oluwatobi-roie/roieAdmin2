@@ -1,5 +1,9 @@
 """Staff-only finance API. SQL access here is strictly read-only."""
 import copy
+import hashlib
+import re
+from datetime import datetime, timezone
+from email.utils import make_msgid
 import os
 import uuid
 from pathlib import Path
@@ -15,6 +19,8 @@ from services.finance import (CATEGORIES, FinanceError, Ledger, audit, calculate
     invoice_view, invoice_totals, now, prepare_entries, record_payment, receipt_view, save_draft)
 from services.profile_renewal import account_lock, canonical_expiry, eligible_devices, next_expiry
 from services.payment_proof import prepare_proof, save_proof
+from services.finance_pdf import document_pdf
+from services.finance_mail import mailbox, smtp_settings, send_document
 
 finance_bp = Blueprint("finance", __name__)
 
@@ -496,3 +502,65 @@ def extend_profile_expiry(user_id):
                 device_ids=selected, previous_expiration_time=expected, expiration_time=target)
             result = copy.deepcopy(operation)
         return jsonify(extension=result)
+
+
+@finance_bp.post("/invoices/<invoice_id>/email")
+def email_document(invoice_id):
+    payload = body()
+    key = clean_text(payload.get("request_key", ""), "Request key", 100)
+    if not key:
+        raise FinanceError("A request key is required.")
+    kind, payment_id = payload.get("kind"), payload.get("payment_id")
+    if kind not in ("invoice", "receipt") or (payment_id is not None and (not isinstance(payment_id, str) or not payment_id)):
+        raise FinanceError("Choose an invoice or receipt to send.")
+    if kind == "invoice" and payment_id is not None:
+        raise FinanceError("A payment can only be selected for a receipt.")
+    store = ledger()
+    with store.transaction() as data:
+        snapshot = copy.deepcopy(get_invoice(data, invoice_id))
+        prior = next((item for item in snapshot.get("email_deliveries", []) if item["request_key"] == key), None)
+        if prior:
+            if prior["kind"] != kind or prior.get("payment_id") != payment_id:
+                raise FinanceError("This email request was already used for a different document.", 409)
+            return jsonify(delivery=prior, invoice=invoice_view(snapshot))
+        check_revision(snapshot, payload)
+        if snapshot["status"] != "issued":
+            raise FinanceError("Only finalized, active invoices and their receipts can be emailed.", 409)
+    recipient = mailbox(snapshot["customer"]["email"])
+    settings = smtp_settings()
+    attachment, number = document_pdf(snapshot, kind, payment_id)
+    label = "Invoice" if kind == "invoice" else "Payment receipt" if payment_id else "Combined payment receipt"
+    operation = {"id": uuid.uuid4().hex, "request_key": key, "kind": kind, "payment_id": payment_id,
+        "recipient": recipient, "customer_name": snapshot["customer"]["name"], "label": label,
+        "document_number": number, "filename": re.sub(r"[^A-Za-z0-9_.-]", "_", number) + ".pdf",
+        "message_id": make_msgid(domain=settings["envelope"].split("@")[-1]),
+        "document_sha256": hashlib.sha256(attachment).hexdigest(), "invoice_revision": snapshot["revision"],
+        "state": "pending", "requested_at": now(), "actor": copy.deepcopy(g.finance_actor),
+        "message": "Sending is pending or its outcome is unconfirmed. Reload to check before sending again."}
+    with store.transaction(write=True) as data:
+        invoice = get_invoice(data, invoice_id)
+        prior = next((item for item in invoice.get("email_deliveries", []) if item["request_key"] == key), None)
+        if prior:
+            if prior["kind"] != kind or prior.get("payment_id") != payment_id:
+                raise FinanceError("This email request was already used for a different document.", 409)
+            return jsonify(delivery=prior, invoice=invoice_view(invoice))
+        check_revision(invoice, payload)
+        attempts = [item for item in invoice.get("email_deliveries", []) if item["kind"] == kind and item.get("payment_id") == payment_id]
+        if attempts and attempts[-1]["state"] in ("pending", "unknown"):
+            latest = attempts[-1]
+            age = (datetime.now(timezone.utc) - datetime.fromisoformat(latest["requested_at"])).total_seconds()
+            if latest["state"] == "pending" and age < 120:
+                raise FinanceError("An email request is still pending. Wait two minutes and reload before trying again.", 409)
+            if payload.get("confirm_resend") is not True:
+                raise FinanceError("The previous email outcome is unconfirmed. Check the sender's mailbox and confirm before resending.", 409)
+        invoice.setdefault("email_deliveries", []).append(operation)
+        audit(invoice, "email_requested", g.finance_actor, delivery_id=operation["id"], recipient=recipient, document_number=number)
+    # Commit the intent before contacting SMTP. No network call holds the ledger lock.
+    state, message = send_document(settings, operation, attachment)
+    with store.transaction(write=True) as data:
+        invoice = get_invoice(data, invoice_id)
+        delivery = next(item for item in invoice["email_deliveries"] if item["id"] == operation["id"])
+        delivery.update(state=state, message=message, completed_at=now())
+        audit(invoice, "email_" + state, g.finance_actor, delivery_id=operation["id"], recipient=recipient, document_number=number)
+        result = invoice_view(invoice)
+    return jsonify(delivery=delivery, invoice=result)

@@ -96,7 +96,7 @@ class LedgerTests(unittest.TestCase):
             self.assertEqual(invoice["customer"]["name"], "Ada Customer")
             finalize(data, invoice, {"revision": 1}, ACTOR)
             finalize(data, invoice, {"revision": 1}, ACTOR)
-            self.assertEqual(data["sequence"], 1)
+            self.assertEqual(data["sequence"], 19674)
             payment = {"revision": invoice["revision"], "request_key": "pay-1", "amount": "5000",
                        "method": "bank_transfer", "paid_on": "2020-01-01", "reference": "BANK-001", "proof": {"sha256": "a" * 64}}
             record_payment(invoice, payment, ACTOR)

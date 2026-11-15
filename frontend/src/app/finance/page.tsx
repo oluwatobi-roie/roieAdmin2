@@ -7,6 +7,7 @@ import InvoiceWizard from '@/components/finance/InvoiceWizard';
 import { InvoicePaper, ReceiptPaper } from '@/components/finance/InvoiceDocument';
 import ExtensionAudit from '@/components/finance/ExtensionAudit';
 import PaymentPanel from '@/components/finance/PaymentPanel';
+import SendDocument from '@/components/finance/SendDocument';
 import { CustomerPicker, Field, actionClass, fieldClass, secondaryClass } from '@/components/finance/FinanceInputs';
 import './print.css';
 
@@ -89,6 +90,7 @@ export default function FinancePage() {
           <button className={actionClass} disabled={busy} onClick={() => void run(() => action('finalize'))}><FiCheck aria-hidden="true" />Finalize invoice</button>
         </div>}
       </div>
+      <SendDocument key={selected.id} invoice={selected} onUpdated={update} />
       <InvoicePaper invoice={selected} />
       <div className="finance-no-print space-y-5">
         {!selected.customer.traccar_user_id && selected.status !== 'void' && <section className="finance-card space-y-3"><h2 className="font-semibold">Link an existing customer account</h2><CustomerPicker disabled={busy} onAccount={async id => { await action('link-customer', { user_id: id }); setDevices((await financeApi<{ devices: Device[] }>(`customers/${id}`)).devices); }} /></section>}
@@ -99,6 +101,6 @@ export default function FinancePage() {
         {canCancel && selected.status !== 'void' && !selected.paid_minor && <details className="finance-card"><summary className="cursor-pointer text-sm font-medium text-red-800">Cancel invoice</summary><form className="mt-4 space-y-3" onSubmit={event => { event.preventDefault(); void run(() => action('void', { reason })); }}><Field label="Reason for cancellation"><input required maxLength={500} className={fieldClass} value={reason} onChange={event => setReason(event.target.value)} /></Field><p className="text-sm text-slate-500">The invoice will remain in the history, marked as cancelled.</p><button className={secondaryClass} disabled={busy}>Confirm cancellation</button></form></details>}
       </div>
     </>}
-    {mode === 'receipt' && receipt && <><div className="finance-no-print flex flex-wrap justify-between gap-3"><button className={secondaryClass} onClick={() => setMode('detail')}>Back to invoice</button><button className={actionClass} onClick={() => window.print()}>Print / save receipt</button></div><ReceiptPaper receipt={receipt} /></>}
+    {mode === 'receipt' && receipt && <><div className="finance-no-print flex flex-wrap justify-between gap-3"><button className={secondaryClass} onClick={() => setMode('detail')}>Back to invoice</button><button className={actionClass} onClick={() => window.print()}>Print / save receipt</button></div>{selected && <SendDocument key={receipt.number} invoice={selected} receipt={receipt} onUpdated={update} />}<ReceiptPaper receipt={receipt} /></>}
   </div></main>;
 }

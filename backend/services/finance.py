@@ -376,7 +376,11 @@ def finalize(data, invoice, body, actor):
     check_revision(invoice, body)
     if invoice["status"] != "draft":
         raise FinanceError("Only drafts can be finalized.", 409)
-    data["sequence"] += 1
+    # Continue from 019674 without renumbering any historical document.
+    # Recover the high-water mark too, in case a ledger was restored/imported.
+    issued_numbers = [int(match.group(1)) for item in data["invoices"].values()
+                      if (match := re.fullmatch(r"ROIE-\d{4}-(\d+)", item.get("number") or ""))]
+    data["sequence"] = max(19672, data.get("sequence", 0), *issued_numbers) + 2
     invoice.update(status="issued", number=f"ROIE-{datetime.now(timezone.utc).year}-{data['sequence']:06d}",
                    issued_at=now())
     audit(invoice, "issued", actor)

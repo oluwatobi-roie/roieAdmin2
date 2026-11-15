@@ -12,12 +12,18 @@ export type Payment = { id: string; receipt_number?: string; amount_minor: numbe
 export type Receipt = { number: string; invoice_number: string; invoice_id: string; customer: Customer; as_of: string; kind: string; payments: Payment[]; invoice_total_minor: number; received_minor: number; cumulative_paid_minor: number; balance_minor: number };
 export type ProofInput = { name: string; data_url: string };
 export type CustomerSummary = { vehicle_count: number; unpaid_invoice_count: number; finance_status: string; paid_minor: number; balance_minor: number };
+export type EmailDelivery = {
+  id: string; kind: 'invoice' | 'receipt'; payment_id: string | null;
+  recipient: string; document_number: string; requested_at: string;
+  state: 'pending' | 'sent' | 'failed' | 'unknown'; message: string;
+};
 export type Invoice = Preview & {
   id: string; number: string | null; revision: number; request_key: string;
   status: 'draft' | 'issued' | 'void'; currency: string; created_at: string; issued_at?: string;
   due_date: string; notes: string; paid_minor: number; balance_minor: number; payment_status: string;
   payments: Payment[];
   renewal_extension?: ProfileExtension;
+  email_deliveries?: EmailDelivery[];
   events: { at: string; action: string; actor: { name: string }; reason?: string }[];
 };
 export const categories: Record<Category, { label: string; defaultTotal: string }> = {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sequence": 5,
+  "sequence": 19674,
   "profiles": {
     "traccar-1230": {
       "name": "AdminTrials",
@@ -1863,6 +1863,285 @@
       "notes": "",
       "updated_at": "2026-11-14T05:48:56.935346+00:00",
       "issued_at": "2026-11-14T05:44:06.721080+00:00"
+    },
+    "a90da7e390b743eebdf3a6945b8440ae": {
+      "id": "a90da7e390b743eebdf3a6945b8440ae",
+      "request_key": "13e23221-118c-44fd-99c6-5ddc87fabf23",
+      "number": "ROIE-2026-019674",
+      "request_fingerprint": "9306c98cf2014cda84ba8b4aa33995d6bb4bdf7acade65229a1d7cb7f1ef12ea",
+      "created_at": "2026-11-15T22:03:46.613984+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 10,
+      "payments": [
+        {
+          "id": "1b6e9a80b63340c6b0783a538ec79a78",
+          "request_key": "13f45d77-6846-4fd4-a0cf-e1b49d8f8db2",
+          "amount_minor": 8000000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-15",
+          "reference": "782y38287323",
+          "recorded_at": "2026-11-15T22:05:03.996751+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "7543760a38309b970d9717913b85172e7a9a433d50d69d661bd31e25fd64c859",
+            "name": "Roie e-Stamp.png",
+            "content_type": "image/png",
+            "size": 173043
+          },
+          "receipt_number": "ROIE-2026-019674-R001"
+        },
+        {
+          "id": "781b5754f86c47bda6ad7658247f825d",
+          "request_key": "0cc9a53a-7ca0-49ba-a9ef-d2b4a0771d68",
+          "amount_minor": 6000000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-14",
+          "reference": "q4q34321",
+          "recorded_at": "2026-11-15T22:08:43.112863+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "9151fb40289ae9c2ee14598d9a1e916d1001e8fd8e6c0d831d9cadcd0d2492ec",
+            "name": "Red and White Minimalist Christmas Circle Sticker.png",
+            "content_type": "image/png",
+            "size": 354829
+          },
+          "receipt_number": "ROIE-2026-019674-R002"
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-11-15T22:03:46.614168+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-15T22:03:53.517134+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-15T22:04:03.055356+00:00",
+          "action": "email_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "1a151bef11164ffc96d343ca0beaeb3b",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674"
+        },
+        {
+          "at": "2026-11-15T22:04:06.106709+00:00",
+          "action": "email_sent",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "1a151bef11164ffc96d343ca0beaeb3b",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674"
+        },
+        {
+          "at": "2026-11-15T22:05:03.996764+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 8000000
+        },
+        {
+          "at": "2026-11-15T22:05:16.206299+00:00",
+          "action": "email_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "74abbcf0d80f4da3b38e9924409535a4",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674-R001"
+        },
+        {
+          "at": "2026-11-15T22:05:18.251999+00:00",
+          "action": "email_sent",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "74abbcf0d80f4da3b38e9924409535a4",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674-R001"
+        },
+        {
+          "at": "2026-11-15T22:08:43.112886+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 6000000
+        },
+        {
+          "at": "2026-11-15T22:08:51.776196+00:00",
+          "action": "email_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "b7a65656afca45d9a8afeb496f03ef64",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674-ALL-002"
+        },
+        {
+          "at": "2026-11-15T22:08:53.871298+00:00",
+          "action": "email_sent",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "b7a65656afca45d9a8afeb496f03ef64",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019674-ALL-002"
+        }
+      ],
+      "customer": {
+        "name": "A-Test 1",
+        "email": "roietechnologies@gmail.com",
+        "phone": "07037870700",
+        "address": {
+          "line1": "217 7 Ave SW",
+          "line2": "",
+          "city": "Calgary",
+          "state": "AB",
+          "postal_code": "T2P 0X1",
+          "country": "Nigeria"
+        },
+        "formatted_address": "217 7 Ave SW\nCalgary, AB, T2P 0X1\nNigeria",
+        "profile_id": "traccar-1193",
+        "traccar_user_id": 1193
+      },
+      "entries": [
+        {
+          "category": "installation",
+          "total_minor": 14000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1204000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 336000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1960000
+            },
+            {
+              "label": "Device",
+              "amount_minor": 10500000
+            }
+          ],
+          "id": "92a6195c4ea540fbaefb9edf3062c0a2",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 1",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        }
+      ],
+      "subtotal_minor": 14000000,
+      "discount_minor": 0,
+      "discount": {
+        "type": "none",
+        "value": "0"
+      },
+      "total_minor": 14000000,
+      "due_date": "",
+      "notes": "",
+      "updated_at": "2026-11-15T22:08:53.871303+00:00",
+      "issued_at": "2026-11-15T22:03:53.517121+00:00",
+      "email_deliveries": [
+        {
+          "id": "1a151bef11164ffc96d343ca0beaeb3b",
+          "request_key": "ea87a966-ee5f-4233-be46-c07b2f1f463d",
+          "kind": "invoice",
+          "payment_id": null,
+          "recipient": "roietechnologies@gmail.com",
+          "customer_name": "A-Test 1",
+          "label": "Invoice",
+          "document_number": "ROIE-2026-019674",
+          "filename": "ROIE-2026-019674.pdf",
+          "message_id": "<179478024305.21144.18069215461133528664@gmail.com>",
+          "document_sha256": "81f8ec076a4dee466f7e5a8be636288534d33fc0a398b0ff768a4882c3a1f588",
+          "invoice_revision": 2,
+          "state": "sent",
+          "requested_at": "2026-11-15T22:04:03.053398+00:00",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "message": "Accepted by the mail server. Delivery to the customer's inbox may take a few minutes.",
+          "completed_at": "2026-11-15T22:04:06.106659+00:00"
+        },
+        {
+          "id": "74abbcf0d80f4da3b38e9924409535a4",
+          "request_key": "315b9636-506c-4030-8db3-148e6fe43b31",
+          "kind": "receipt",
+          "payment_id": "1b6e9a80b63340c6b0783a538ec79a78",
+          "recipient": "roietechnologies@gmail.com",
+          "customer_name": "A-Test 1",
+          "label": "Payment receipt",
+          "document_number": "ROIE-2026-019674-R001",
+          "filename": "ROIE-2026-019674-R001.pdf",
+          "message_id": "<179478031620.21144.3374685215961182466@gmail.com>",
+          "document_sha256": "ae566a4ca829be7e394c0df866bbe1f55a3ad54a7397ae6ff92ac6921831e9b5",
+          "invoice_revision": 5,
+          "state": "sent",
+          "requested_at": "2026-11-15T22:05:16.204624+00:00",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "message": "Accepted by the mail server. Delivery to the customer's inbox may take a few minutes.",
+          "completed_at": "2026-11-15T22:05:18.251958+00:00"
+        },
+        {
+          "id": "b7a65656afca45d9a8afeb496f03ef64",
+          "request_key": "16d69cb1-7628-4d3f-99fc-a21c5ad4951b",
+          "kind": "receipt",
+          "payment_id": null,
+          "recipient": "roietechnologies@gmail.com",
+          "customer_name": "A-Test 1",
+          "label": "Combined payment receipt",
+          "document_number": "ROIE-2026-019674-ALL-002",
+          "filename": "ROIE-2026-019674-ALL-002.pdf",
+          "message_id": "<179478053177.21144.4261513412612065597@gmail.com>",
+          "document_sha256": "bccc09da38028e6d7d03dd1c921e309e095f8d3f1d08dea3a6bbeb7683f1b497",
+          "invoice_revision": 8,
+          "state": "sent",
+          "requested_at": "2026-11-15T22:08:51.773013+00:00",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "message": "Accepted by the mail server. Delivery to the customer's inbox may take a few minutes.",
+          "completed_at": "2026-11-15T22:08:53.871269+00:00"
+        }
+      ]
     }
   }
 }
