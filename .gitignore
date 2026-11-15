@@ -62,7 +62,8 @@ backend/data/
 frontend/.next/*
 
 # Isolated build for finance browser checks
-frontend/.next-finance-qa/
+frontend/.next-finance-qa/*
+frontend/.next-renewal-check/*
 
 # Generated invoice QA samples
 /output/pdf/
