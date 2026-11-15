@@ -9,13 +9,13 @@ import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SearchDeviceCard, { SearchDevice as Device, SearchUserProfile as UserProfile } from '@/components/SearchDeviceCard';
-import { FiSmartphone, FiUser, FiCpu, FiCalendar, FiMail, FiClock, FiCreditCard, FiChevronDown } from 'react-icons/fi';
+import { FiSmartphone, FiUser, FiCpu, FiCalendar, FiMail, FiClock, FiCreditCard, FiChevronDown, FiSearch, FiX } from 'react-icons/fi';
 
 type ProfilePanel = 'renewal' | 'finance' | 'devices';
 const profileActions = [
-  { id: 'renewal' as const, label: 'Extend Profile Expiry', Icon: FiClock },
-  { id: 'finance' as const, label: 'Finance History', Icon: FiCreditCard },
-  { id: 'devices' as const, label: 'View Devices', Icon: FiCpu },
+  { id: 'renewal' as const, label: 'Extend Profile Expiry', shortLabel: 'Extend', Icon: FiClock },
+  { id: 'finance' as const, label: 'Finance History', shortLabel: 'Finance', Icon: FiCreditCard },
+  { id: 'devices' as const, label: 'View Devices', shortLabel: 'Devices', Icon: FiCpu },
 ];
 
 interface SearchResponse {
@@ -28,6 +28,10 @@ export default function SearchPage() {
   const { auth_loading, authenticated } = useAuth();
 
   const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const searchToggle = useRef<HTMLButtonElement>(null);
+  const profileActionsRef = useRef<HTMLDivElement>(null);
   const [results, setResults] = useState<Device[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,9 +62,12 @@ export default function SearchPage() {
       if (controller.signal.aborted) return;
       if (!res.ok) throw new Error(res.status === 404 ? 'Customer or device not found.' : 'Unable to load this record. Please try again.');
       if (!data || (Array.isArray(data) && data.length === 0) || (!Array.isArray(data) && !data.user && !data.devices?.length)) {
+        setSearchOpen(true);
         setFeedback('No results found.');
         return;
       }
+      setSearchOpen(false);
+      searchToggle.current?.focus({ preventScroll: true });
       if (Array.isArray(data)) {
         setResults(data);
       } else {
@@ -68,7 +75,7 @@ export default function SearchPage() {
         setUserProfile(data.user || null);
       }
     } catch (err) {
-      if (!controller.signal.aborted) setFeedback((err as Error).message || 'Error occurred while searching.');
+      if (!controller.signal.aborted) { setSearchOpen(true); setFeedback((err as Error).message || 'Error occurred while searching.'); }
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -80,6 +87,18 @@ export default function SearchPage() {
     if (userId !== null) void loadSearch(new URLSearchParams({ user_id: userId }));
     return () => searchRequest.current?.abort();
   }, [authenticated, loadSearch]);
+
+  useEffect(() => {
+    if (searchOpen) searchInput.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!activePanel || !window.matchMedia('(max-width: 767px)').matches) return;
+    const frame = window.requestAnimationFrame(() => {
+      profileActionsRef.current?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activePanel]);
 
   const handleSearch = () => {
     if (query.trim()) void loadSearch(new URLSearchParams({ term: query.trim() }));
@@ -132,23 +151,27 @@ export default function SearchPage() {
   if (!authenticated) return null;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-6 text-slate-800 sm:px-6 sm:py-9 md:px-10">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-700">Customer workspace</p>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Search Records</h1>
-          <p className="text-sm leading-relaxed text-slate-500">Find a customer by email, or a vehicle by name, IMEI or phone.</p>
+    <main className="roie-page min-h-screen bg-slate-50 px-3 py-6 text-slate-800 sm:px-6 sm:py-9 md:px-10">
+      <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
+        <header className="workspace-toolbar">
+          <div className="flex min-h-12 items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="roie-page-title">{userProfile ? 'Customer workspace' : results.length ? 'Asset workspace' : 'Search records'}</h1>
+              {!userProfile && !results.length && <p className="mt-1 text-xs text-slate-600">Find a customer or vehicle.</p>}
+            </div>
+            <Button ref={searchToggle} type="button" size="icon" aria-label={searchOpen ? 'Close search' : 'Open search'} aria-expanded={searchOpen} aria-controls="workspace-search" onClick={() => setSearchOpen(previous => !previous)} className="roie-icon-button h-11 w-11 shrink-0 bg-blue-700 text-white hover:bg-blue-800">{searchOpen ? <FiX aria-hidden="true" /> : <FiSearch aria-hidden="true" />}</Button>
+          </div>
+          {searchOpen && <form id="workspace-search" className="workspace-reveal mt-3 flex gap-2" onSubmit={event => { event.preventDefault(); handleSearch(); }}>
+            <label htmlFor="record-search" className="sr-only">Customer email or device details</label>
+            <Input ref={searchInput} id="record-search" type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={event => setQuery(event.target.value)} className="h-11 min-w-0 flex-1 border-slate-300 shadow-none" />
+            <Button type="submit" disabled={loading || !query.trim()} className="h-11 bg-blue-700 px-4 text-white hover:bg-blue-800">{loading ? 'Searching...' : 'Search'}</Button>
+          </form>}
         </header>
-        <form className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:gap-3 sm:p-4" onSubmit={event => { event.preventDefault(); handleSearch(); }}>
-          <label htmlFor="record-search" className="sr-only">Customer email or device details</label>
-          <Input id="record-search" type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={event => setQuery(event.target.value)} className="h-11 min-w-0 flex-1 border-slate-200 shadow-none" />
-          <Button type="submit" disabled={loading} className="h-11 rounded-xl bg-blue-700 px-4 text-white hover:bg-blue-800">{loading ? 'Searching...' : 'Search'}</Button>
-        </form>
         {feedback && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">{feedback}</p>}
 
         {userProfile && <section aria-label="Customer profile" className="space-y-5">
-          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="p-5 sm:p-6">
+          <div className="roie-card min-w-0">
+            <div className="p-4 sm:p-6">
               <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 sm:h-14 sm:w-14"><FiUser size={24} aria-hidden="true" /></div>
                 <div className="min-w-0 flex-1">
@@ -157,32 +180,32 @@ export default function SearchPage() {
                   <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${userProfile.status === 'Active' ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-800'}`}>{userProfile.status}</span>
                 </div>
               </div>
-              <dl className="mt-6 grid min-w-0 gap-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiMail aria-hidden="true" />Email</dt><dd className="mt-1.5 break-words font-medium [overflow-wrap:anywhere]">{userProfile.email || 'Not available'}</dd></div>
+              <dl className="profile-contact-grid mt-4 grid min-w-0 grid-cols-2 gap-3 text-sm sm:gap-5 lg:grid-cols-3">
+                <div className="col-span-2 min-w-0 lg:col-span-1"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiMail aria-hidden="true" />Email</dt><dd className="mt-1.5 break-words font-medium [overflow-wrap:anywhere]">{userProfile.email || 'Not available'}</dd></div>
                 <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiSmartphone aria-hidden="true" />Phone number</dt><dd className="mt-1.5 break-words font-medium [overflow-wrap:anywhere]">{userProfile.phone || 'Not available'}</dd></div>
                 <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiCalendar aria-hidden="true" />Profile expiry</dt><dd className="mt-1.5 font-medium leading-relaxed">{expiryLabel(userProfile.expiry)}</dd></div>
               </dl>
             </div>
-            {userProfile.id && <div className="px-5 pb-5 sm:px-6"><CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} /></div>}
+            {userProfile.id && <div className="px-4 pb-4 sm:px-6 sm:pb-5"><CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} /></div>}
           </div>
 
-          <div role="group" aria-label="Profile actions" className="grid gap-3 sm:grid-cols-3">
-            {profileActions.map(({ id, label, Icon }) => <button key={id} id={`profile-action-${id}`} type="button" aria-label={label} aria-controls={`profile-panel-${id}`} aria-expanded={activePanel === id} onClick={() => togglePanel(id)} className={`flex min-h-16 min-w-0 items-center gap-3 rounded-xl border p-4 text-left text-sm font-semibold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${activePanel === id ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-200 bg-white text-blue-900 hover:border-blue-300 hover:bg-blue-50'}`}>
-              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="min-w-0 flex-1">{label}</span><FiChevronDown className={`shrink-0 transition-transform ${activePanel === id ? 'rotate-180' : ''}`} aria-hidden="true" />
+          <div ref={profileActionsRef} role="group" aria-label="Profile actions" className="profile-nav grid grid-cols-3 gap-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-1.5 sm:gap-3 sm:p-2">
+            {profileActions.map(({ id, label, shortLabel, Icon }) => <button key={id} id={`profile-action-${id}`} type="button" aria-label={label} aria-controls={`profile-panel-${id}`} aria-expanded={activePanel === id} onClick={() => togglePanel(id)} className={`profile-nav-button ${activePanel === id ? 'is-selected' : ''}`}>
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="sm:hidden">{shortLabel}</span><span className="hidden min-w-0 sm:inline">{label}</span><FiChevronDown className={`hidden shrink-0 transition-transform sm:block ${activePanel === id ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>)}
           </div>
 
-          <div id="profile-panel-renewal" hidden={activePanel !== 'renewal'} role="region" aria-labelledby="profile-action-renewal" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div id="profile-panel-renewal" hidden={activePanel !== 'renewal'} role="region" aria-labelledby="profile-action-renewal" className="roie-card workspace-reveal min-w-0 p-4 sm:p-6">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Extend profile expiry</h2>
             {visitedPanels.includes('renewal') && userProfile.id && <ProfileRenewal key={`renewal-${userProfile.id}`} userId={userProfile.id} onUpdated={updateProfileExpiry} />}
           </div>
-          <div id="profile-panel-finance" hidden={activePanel !== 'finance'} role="region" aria-labelledby="profile-action-finance" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          <div id="profile-panel-finance" hidden={activePanel !== 'finance'} role="region" aria-labelledby="profile-action-finance" className="roie-card workspace-reveal min-w-0 p-4 sm:p-6">
             <h2 className="mb-4 text-lg font-semibold text-slate-900">Finance history</h2>
             {visitedPanels.includes('finance') && userProfile.id && <FinanceHistory key={`finance-${userProfile.id}`} userId={userProfile.id} />}
           </div>
         </section>}
 
-        {(userProfile || results.length > 0) && <section id="profile-panel-devices" hidden={!!userProfile && activePanel !== 'devices'} aria-label="Devices" className="min-w-0 space-y-4">
+        {(userProfile || results.length > 0) && <section id="profile-panel-devices" hidden={!!userProfile && activePanel !== 'devices'} aria-label="Devices" className="workspace-reveal min-w-0 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold text-slate-900">Devices <span className="ml-1 text-sm font-normal text-slate-500">({results.length})</span></h2><p className="text-xs text-slate-500">Status, location and linked accounts</p></div>
           {!results.length && <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">No devices found for this account.</p>}
           <div className="grid min-w-0 items-start gap-4 lg:grid-cols-2">

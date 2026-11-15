@@ -82,8 +82,11 @@ def main():
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('console', lambda message: errors.append(message.text) if 'same key' in message.text else None)
             page.goto('http://127.0.0.1:3108/search')
+            page.get_by_role('button', name='Open search', exact=True).click()
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('Ada')
             page.get_by_role('button', name='Search', exact=True).click()
+            expect(page.get_by_placeholder('e.g. GGE 173 XN or user@email.com')).to_have_count(0)
+            expect(page.get_by_role('heading', name='Customer workspace', exact=True)).to_be_visible()
             actions = page.get_by_role('group', name='Profile actions')
             expect(actions.get_by_role('button')).to_have_count(3)
             for label in ['Extend Profile Expiry', 'Finance History', 'View Devices']:
@@ -102,6 +105,8 @@ def main():
             for width in [320, 390, 768, 1440]:
                 page.set_viewport_size({'width': width, 'height': 1000})
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), f'Profile overflow at {width}'
+                boxes = [button.bounding_box() for button in actions.get_by_role('button').all()]
+                assert max(box['y'] for box in boxes) - min(box['y'] for box in boxes) < 2, 'Profile buttons must stay in one horizontal row'
                 for card in device_panel.get_by_role('article').all():
                     assert card.evaluate('(element) => element.scrollWidth <= element.clientWidth + 1'), f'Device overflow at {width}'
                 if width in [390, 1440]:
@@ -115,6 +120,10 @@ def main():
             dialog.get_by_role('button', name='Cancel').click()
             actions.get_by_role('button', name='View Devices').click()
             expect(device_panel).not_to_be_visible()
+            actions.get_by_role('button', name='Finance History').click()
+            page.wait_for_function("document.querySelector('[aria-label=\"Profile actions\"]').getBoundingClientRect().top < 200")
+            assert page.get_by_role('region', name='Finance records').bounding_box()['y'] < 500, 'Opened panel should be in the mobile viewport'
+            actions.get_by_role('button', name='Finance History').click()
             page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
             page.screenshot(path=str(output / 'profile-mobile.png'), full_page=True, animations='disabled')
             page.set_viewport_size({'width': 1440, 'height': 1000})
@@ -140,7 +149,9 @@ def main():
             page.set_viewport_size({'width': 390, 'height': 844})
             expect(confirm).to_be_visible()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile overflow'
-            page.screenshot(path=str(output / 'renewal-mobile.png'), full_page=True)
+            page.wait_for_function("document.querySelector('[aria-label=\"Profile actions\"]').getBoundingClientRect().top < 200")
+            page.screenshot(path=str(output / 'renewal-mobile-viewport.png'), animations='disabled')
+            page.screenshot(path=str(output / 'renewal-mobile.png'), full_page=True, animations='disabled')
             confirm.click()
             expect(panel.get_by_text('Profile extended to', exact=False)).to_be_visible()
             expect(panel.get_by_text('Renewal vehicles (1): Corolla (12345)', exact=True)).to_be_visible()
@@ -170,6 +181,7 @@ def main():
             import requests
             fixture.put.side_effect = requests.Timeout()
             page.goto('http://127.0.0.1:3108/search')
+            page.get_by_role('button', name='Open search', exact=True).click()
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('Ada')
             page.get_by_role('button', name='Search', exact=True).click()
             page.get_by_role('button', name='Extend Profile Expiry').click()
@@ -186,15 +198,45 @@ def main():
             expect(retry).to_have_count(0)
             assert fixture.account['expirationTime'] == '2022-02-28T12:34:56.000Z'
             assert fixture.put.call_count == 3
+            page.get_by_role('button', name='Open search', exact=True).click()
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('device-only')
             page.get_by_role('button', name='Search', exact=True).click()
             expect(page.get_by_role('group', name='Profile actions')).to_have_count(0)
             expect(page.get_by_role('region', name='Devices', exact=True)).to_be_visible()
+            page.get_by_role('button', name='Open search', exact=True).click()
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('empty-fleet')
             page.get_by_role('button', name='Search', exact=True).click()
             expect(page.get_by_role('button', name='View Devices')).to_have_attribute('aria-expanded', 'false')
             page.get_by_role('button', name='View Devices').click()
             expect(page.get_by_text('No devices found for this account.')).to_be_visible()
+            page.emulate_media(reduced_motion='reduce')
+            page.get_by_role('button', name='Finance History').click()
+            assert page.locator('#profile-panel-finance').evaluate('(element) => getComputedStyle(element).animationName') == 'none'
+            page.emulate_media(reduced_motion='no-preference')
+            # The same card/button system must remain usable on every screen.
+            for route_path in ['/', '/add-device', '/onboard_user', '/finance', '/login']:
+                page.goto('http://127.0.0.1:3108' + route_path)
+                expect(page.locator('h1').first).to_be_visible()
+                for width in [320, 390, 1024, 1440]:
+                    page.set_viewport_size({'width': width, 'height': 900})
+                    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), f'{route_path} overflow at {width}'
+                if route_path == '/onboard_user':
+                    expect(page.get_by_role('link', name='Back to finance', exact=True)).to_have_count(0)
+                if route_path != '/login':
+                    expect(page.get_by_role('button', name='Open navigation', exact=True)).not_to_be_visible()
+            page.goto('http://127.0.0.1:3108/finance?new=1')
+            page.get_by_role('link', name='Onboard a customer first', exact=True).click()
+            expect(page.get_by_role('link', name='Back to finance', exact=True)).to_be_visible()
+            page.set_viewport_size({'width': 390, 'height': 844})
+            page.screenshot(path=str(output / 'onboard-mobile.png'), full_page=True, animations='disabled')
+            page.goto('http://127.0.0.1:3108/add-device')
+            page.get_by_role('radio', name='Bulk', exact=True).click()
+            expect(page.get_by_role('radio', name='Bulk', exact=True)).to_have_attribute('data-state', 'on')
+            page.screenshot(path=str(output / 'add-device-mobile.png'), full_page=True, animations='disabled')
+            page.get_by_role('button', name='Open navigation', exact=True).click()
+            page.get_by_role('link', name='Onboard Users', exact=True).click()
+            expect(page.get_by_role('heading', name='Onboard New User')).to_be_visible()
+            expect(page.get_by_role('link', name='Back to finance', exact=True)).to_have_count(0)
             assert not errors, errors
             browser.close()
             print('Browser checks passed: paid-only selection, required vehicles, old-expiry warning, responsive profile actions, long device details at 320/390/768/1440px, preserved renewal selections, profile/invoice audit, safe pending retry; no browser errors.')

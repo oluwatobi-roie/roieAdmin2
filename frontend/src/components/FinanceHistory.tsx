@@ -20,7 +20,7 @@ export default function FinanceHistory({ userId }: { userId: string | number }) 
   return <section aria-label="Finance records" className="min-w-0 space-y-5 text-sm">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <p className="text-slate-500">Invoices and payments for this customer.</p>
-      <Link className="rounded-lg border border-blue-200 px-3 py-2 font-medium text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600" href={`/finance?user_id=${userId}&new=1`}>Generate invoice</Link>
+      <Link className="roie-button roie-secondary rounded-lg border border-blue-200 px-3 py-2 font-medium text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600" href={`/finance?user_id=${userId}&new=1`}>Generate invoice</Link>
     </div>
     {loading ? <p role="status" className="text-slate-500">Loading finance history...</p> : error ? <p role="alert" className="text-red-700">{error}</p> : <>
       <div className="grid gap-3 sm:grid-cols-2">

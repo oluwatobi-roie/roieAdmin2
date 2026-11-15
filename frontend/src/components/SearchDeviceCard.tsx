@@ -21,7 +21,7 @@ const statusStyle = (status: string) => {
 export default function SearchDeviceCard({ device, onAssign }: { device: SearchDevice; onAssign: (device: SearchDevice) => void }) {
   const status = device.online_status?.status || 'Status unavailable';
   const recommendation = device.online_status?.recommendation;
-  return <article aria-label={`Device ${device.device_name}`} className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+  return <article aria-label={`Device ${device.device_name}`} className="roie-card min-w-0 p-4 sm:p-5">
     <div className="flex items-start gap-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><FiCpu size={20} aria-hidden="true" /></span>
       <div className="min-w-0 flex-1">
@@ -52,6 +52,6 @@ export default function SearchDeviceCard({ device, onAssign }: { device: SearchD
         </div>)}
       </div>
     </details>
-    <button type="button" onClick={() => onAssign(device)} className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-800 transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:w-auto"><FiUserPlus aria-hidden="true" />Assign to a User</button>
+    <button type="button" onClick={() => onAssign(device)} className="roie-button roie-secondary mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-medium text-blue-800 transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:w-auto"><FiUserPlus aria-hidden="true" />Assign to a User</button>
   </article>;
 }

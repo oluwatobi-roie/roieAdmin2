@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { financeApi, expiryLabel, newRequestKey, ProfileExtension, RenewalOptions } from '@/lib/finance';
 import ExtensionAudit from '@/components/finance/ExtensionAudit';
 
-const button = 'rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50';
-const secondary = 'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50';
+const button = 'roie-button roie-primary rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50';
+const secondary = 'roie-button roie-secondary rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50';
 
 export default function ProfileRenewal({ userId, onUpdated }: { userId: string; onUpdated: (expiry: string, disabled: boolean) => void }) {
   const [options, setOptions] = useState<RenewalOptions | null>(null);

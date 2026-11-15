@@ -17,11 +17,11 @@ const {auth_loading, authenticated } = useAuth();
 
   // ---------- RENDER ----------
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
+    <main className="roie-page min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <header className="text-center flex flex-col items-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">
+          <h1 className="roie-page-title">
             Device Manager Dashboard
           </h1>
           <p className="text-slate-500 text-sm sm:text-base">
@@ -61,7 +61,7 @@ const {auth_loading, authenticated } = useAuth();
 
           <Card className="shadow-sm hover:shadow-md transition-shadow bg-white border border-slate-200 rounded-xl">
             <CardContent className="p-6 flex flex-col items-start gap-4">
-              <h2 className="text-xl font-semibold text-blue-900">👤 Onboard New User</h2>
+              <h2 className="text-xl font-semibold text-blue-900">Onboard New User</h2>
               <p className="text-gray-600 text-sm">
                 Register a new user by name, phone and email.
               </p>

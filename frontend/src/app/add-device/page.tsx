@@ -79,10 +79,10 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   if (!authenticated) return null;
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
+    <main className="roie-page min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
       <div className="max-w-xl mx-auto space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">
-            ➕ Add Device
+        <h1 className="roie-page-title">
+            Add Device
         </h1>
         <p className="text-slate-500 text-sm sm:text-base">
             Switch between bulk and single device mode
@@ -104,7 +104,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <ToggleGroup
           type="single"
           value={mode}
-          onValueChange={(val: 'single' | 'bulk') => setMode(val)}
+          onValueChange={(val: 'single' | 'bulk') => { if (val) setMode(val); }}
           className="w-full justify-center mb-4"
         >
           <ToggleGroupItem value="single">Single</ToggleGroupItem>

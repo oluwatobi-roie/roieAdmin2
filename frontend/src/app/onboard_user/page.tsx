@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ export default function OnboardUserPage() {
 
   // ---------- FORM STATE ----------
   const [createdEmail, setCreatedEmail] = useState('');
+  const [fromFinance, setFromFinance] = useState(false);
+  useEffect(() => { setFromFinance(new URLSearchParams(window.location.search).get('returnTo') === 'finance'); }, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -63,9 +65,9 @@ export default function OnboardUserPage() {
 
   // ---------- RENDER ----------
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
+    <main className="roie-page min-h-screen bg-gray-50 px-4 py-10 sm:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">👤 Onboard New User</h1>
+        <h1 className="roie-page-title">Onboard New User</h1>
         <p className="text-slate-500 text-sm sm:text-base">
           Enter user details to create a new account
         </p>
@@ -83,8 +85,8 @@ export default function OnboardUserPage() {
           </p>
         )}
 
-        {createdEmail && <Link className="inline-block rounded-lg bg-blue-800 px-5 py-3 text-sm font-medium text-white" href={`/finance?new=1&customer_email=${encodeURIComponent(createdEmail)}`}>Create invoice for this customer</Link>}
-        <Link className="block text-sm text-blue-800 underline" href="/finance?new=1">Back to finance</Link>
+        {createdEmail && <Link className="roie-button roie-primary" href={`/finance?new=1&customer_email=${encodeURIComponent(createdEmail)}`}>Create invoice for this customer</Link>}
+        {fromFinance && <Link className="roie-button roie-secondary" href="/finance?new=1">Back to finance</Link>}
         {/* Form Card */}
         <Card className="shadow-sm border border-slate-200 rounded-2xl bg-white">
           <CardContent className="p-6 space-y-4">

@@ -33,31 +33,31 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white text-slate-700 border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+    <header className="h-16 bg-white text-slate-700 border-b border-slate-200 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto flex h-full items-center justify-between px-4 sm:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image src="/logo.svg" alt="Roie Logo" width={130} height={70} />
         </Link>
 
         {/* Hamburger for small screens */}
-        <button
-          className="lg:hidden text-slate-700 text-2xl"
+        <div className="lg:hidden"><button
+          className="roie-button roie-secondary roie-icon-button h-11 w-11 p-2 text-xl"
           aria-label={menuOpen ? "Close navigation" : "Open navigation"}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen(!menuOpen)}
         >
           {menuOpen ? <FiX /> : <FiMenu />}
-        </button>
+        </button></div>
 
         {/* Navigation */}
-        <nav className={`flex-col lg:flex-row lg:flex gap-4 items-start lg:items-center absolute lg:static top-full left-0 w-full lg:w-auto bg-white lg:bg-transparent transition-all overflow-hidden lg:overflow-visible ${menuOpen ? 'max-h-96 py-4 lg:py-0' : 'max-h-0 lg:max-h-full'}`}>
+        <nav className={`flex-col lg:flex-row lg:flex gap-1 xl:gap-3 items-start lg:items-center absolute lg:static top-full left-0 w-full lg:w-auto bg-white lg:bg-transparent transition-[max-height] motion-reduce:transition-none overflow-hidden lg:overflow-visible ${menuOpen ? 'visible max-h-96 py-4 lg:py-0' : 'invisible max-h-0 lg:visible lg:max-h-full'}`}>
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-blue-800 transition-colors ${
-                pathname === link.href ? "font-semibold text-blue-800 underline underline-offset-8" : ""
+              className={`flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 hover:bg-blue-50 hover:text-blue-900 transition-colors ${
+                pathname === link.href ? "font-semibold text-blue-900 bg-blue-50" : ""
               }`}
               onClick={() => setMenuOpen(false)}
             >
@@ -68,7 +68,7 @@ export default function Header() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 px-6 lg:px-0 py-2 lg:py-0 hover:text-blue-800 transition-colors"
+            className="roie-button roie-secondary flex min-h-11 items-center gap-2 rounded-lg px-4 py-2"
           >
             <FiLogOut /> Logout
           </button>

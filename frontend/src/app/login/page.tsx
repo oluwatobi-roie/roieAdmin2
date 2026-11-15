@@ -50,7 +50,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 py-10">
+    <main className="roie-page min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4 py-10">
       
       {/* Logo on top of the card */}
       <div className="mb-8 flex justify-center">
@@ -59,8 +59,8 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <Card className="w-full max-w-md shadow-xl rounded-3xl bg-white">
-        <CardContent className="p-10 space-y-8">
-          <h1 className="text-3xl font-bold text-center text-blue-900">
+        <CardContent className="p-5 sm:p-8 space-y-6">
+          <h1 className="roie-page-title">
             Welcome Back
           </h1>
 

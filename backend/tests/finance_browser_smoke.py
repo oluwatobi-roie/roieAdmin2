@@ -215,6 +215,7 @@ def main():
             expect(page.get_by_text('Cancel invoice', exact=True)).to_have_count(0)
             context.route('**/api/search?*', lambda route: route.fulfill(json={'user': {'id': '42', 'name': 'Ada', 'email': 'ada@example.com', 'phone': '+2348012345678', 'status': 'Active', 'expiry': '2027-01-01'}, 'devices': [{'device_id': '10', 'device_name': 'Corolla', 'imei': '12345', 'model': 'GPS_D_V4', 'user_profiles': [{'id': '42', 'name': 'Ada', 'email': 'ada@example.com', 'status': 'Active', 'expiry': '2027-01-01'}]}]}))
             page.goto('http://127.0.0.1:3107/search')
+            page.get_by_role('button', name='Open search', exact=True).click()
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('ada')
             click('Search')
             expect(page.get_by_text('68 Assets', exact=True)).to_be_visible()
