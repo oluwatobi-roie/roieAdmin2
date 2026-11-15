@@ -178,3 +178,74 @@
     .roie-button:active:not(:disabled), .finance-button:active:not(:disabled), .finance-secondary:active:not(:disabled), .profile-nav-button:active { transform: none; }
   }
 }
+
+
+/* Navigation reserves its own space so actions never cover page content. */
+@media screen {
+  body:has(.app-navigation) .app-content { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .app-navigation {
+    position: fixed; z-index: 50; inset: auto 0 0; height: calc(76px + env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid #d7e2f1; background: #fffffff5; backdrop-filter: blur(12px);
+    box-shadow: 0 -4px 20px #1e3a8a08;
+  }
+  .app-nav-item {
+    min-width: 0; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding: 6px 3px; border: 1px solid transparent; border-radius: 12px;
+    color: #475569; font-size: 10px; font-weight: 600; text-align: center; line-height: 1.2;
+    cursor: pointer; transition: background-color 160ms, color 160ms, transform 160ms;
+  }
+  .app-nav-item > svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .app-nav-item:hover { color: #1d4ed8; background: #eff6ff; }
+  .app-nav-item[aria-current="page"] { color: #fff; background: #1d4ed8; border-color: #1d4ed8; box-shadow: 0 2px 7px #1d4ed82a; }
+  .app-nav-item:active { transform: scale(.96); }
+  .app-nav-item:disabled { opacity: .5; cursor: wait; }
+  .app-nav-item:focus-visible, .home-shortcut:focus-visible, .invoice-action:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+  .home-page { min-height: 0; height: calc(100svh - 64px - 76px - env(safe-area-inset-bottom)); padding: 16px; }
+  .home-workspace { display: flex; flex-direction: column; height: 100%; max-width: 840px; margin: 0 auto; }
+  .home-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(72px, 1fr)); gap: 12px; flex: 1; max-height: 360px; margin-top: 16px; }
+  .home-shortcut { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 12px; min-width: 0; padding: clamp(12px, 3vw, 24px); transition: border-color 160ms, box-shadow 160ms, transform 160ms; }
+  .home-shortcut-icon { display: flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 12px; background: #eff6ff; color: #1d4ed8; }
+  .home-shortcut-icon > svg { width: 22px; height: 22px; }
+  .home-shortcut h2 { color: #172554; font-weight: 650; font-size: 1rem; line-height: 1.3; }
+  .home-shortcut-arrow { position: absolute; top: 14px; right: 14px; color: #64748b; }
+  .home-shortcut:hover { border-color: #93b4df; box-shadow: 0 5px 18px #1e3a8a12; }
+  .home-shortcut:active { transform: scale(.98); }
+  .invoice-toolbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .invoice-action { display: inline-flex; min-width: 0; min-height: 58px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 7px 3px; border: 1px solid #93b4df; border-radius: 12px; background: #fff; color: #1e3a8a; font-size: 11px; font-weight: 650; text-align: center; box-shadow: 0 2px 4px #1e3a8a0d; cursor: pointer; transition: background-color 160ms, transform 160ms, box-shadow 160ms; }
+  .invoice-action > svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .invoice-action:hover { background: #eff6ff; box-shadow: 0 4px 9px #1e3a8a16; }
+  .invoice-action:active { transform: scale(.97); }
+  .invoice-action:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  @media (min-width: 640px) {
+    .invoice-toolbar { display: flex; gap: 8px; }
+    .invoice-action { min-height: 44px; flex-direction: row; gap: 8px; padding: 10px 14px; font-size: 13px; }
+  }
+  @media (min-width: 1024px) {
+    body:has(.app-navigation) .app-content { padding-right: 112px; padding-bottom: 0; }
+    .app-header { margin-right: 112px; }
+    .app-navigation { inset: 0 0 0 auto; width: 112px; height: auto; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 20px 10px; border-top: 0; border-left: 1px solid #d7e2f1; box-shadow: -4px 0 20px #1e3a8a05; overflow-y: auto; }
+    .app-nav-item { min-height: 70px; padding: 10px 6px; font-size: 11px; }
+    .home-page { height: calc(100svh - 64px); padding: 32px; }
+    .home-grid { gap: 20px; max-height: 440px; margin-top: 24px; }
+    .home-shortcut-icon { width: 48px; height: 48px; }
+    .home-shortcut h2 { font-size: 1.125rem; }
+  }
+  @media (max-height: 480px) and (max-width: 1023px) {
+    .home-page { padding: 8px 16px; }
+    .home-grid { margin-top: 8px; gap: 8px; }
+    .home-shortcut { flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; padding: 8px; }
+    .home-shortcut-icon { width: 30px; height: 30px; flex-shrink: 0; }
+    .home-shortcut-arrow { display: none; }
+    .home-shortcut h2 { font-size: .875rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .app-nav-item, .home-shortcut, .invoice-action { transition: none; }
+    .app-nav-item:active, .home-shortcut:active, .invoice-action:active { transform: none; }
+  }
+}
+@media print {
+  .app-header, .app-navigation { display: none !important; }
+  body:has(.app-navigation) .app-content { padding: 0 !important; }
+}

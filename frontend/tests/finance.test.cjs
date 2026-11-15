@@ -90,3 +90,14 @@ test('expiry dates preserve UTC across SQL timestamps, account API offsets and i
   assert.equal(finance.expiryLabel(null), 'No expiry');
   assert.equal(finance.expiryLabel('not-a-date'), 'Invalid expiry date');
 });
+
+test('fleet counts use unique devices and keep warning states separate from NOC passed', () => {
+  const code = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/lib/device-status.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const context = { exports: {} };
+  vm.runInNewContext(code, context);
+  const count = context.exports.countDeviceHealth;
+  const device = (id, status) => ({ device_id: id, online_status: { status } });
+  const result = count([device(1, 'NOC Passed Online'), device('1', 'NOC Passed Online'), device(2, 'Device is Offline'), device(3, 'NOC Failed Online'), device(4, 'Likely Online, but not updating frequently'), { device_id: 5 }]);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { passed: 1, failed: 1, offline: 1, infrequent: 1, unknown: 1 });
+  assert.equal(Object.values(count([])).reduce((sum, value) => sum + value, 0), 0);
+});

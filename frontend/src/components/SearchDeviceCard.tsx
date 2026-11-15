@@ -1,4 +1,5 @@
 import { FiCpu, FiHash, FiInfo, FiMapPin, FiSmartphone, FiUsers, FiAlertTriangle, FiUserPlus } from 'react-icons/fi';
+import { deviceHealth, deviceHealthInfo } from '@/lib/device-status';
 import { expiryLabel } from '@/lib/finance';
 
 export interface SearchUserProfile {
@@ -11,13 +12,6 @@ export interface SearchDevice {
   user_profiles?: SearchUserProfile[];
 }
 
-const statusStyle = (status: string) => {
-  if (status === 'NOC Passed Online') return 'bg-blue-50 text-blue-800 ring-blue-100';
-  if (status === 'NOC Failed Online') return 'bg-red-50 text-red-800 ring-red-100';
-  if (status.includes('not updating')) return 'bg-amber-50 text-amber-900 ring-amber-100';
-  return 'bg-slate-100 text-slate-600 ring-slate-200';
-};
-
 export default function SearchDeviceCard({ device, onAssign }: { device: SearchDevice; onAssign: (device: SearchDevice) => void }) {
   const status = device.online_status?.status || 'Status unavailable';
   const recommendation = device.online_status?.recommendation;
@@ -29,7 +23,7 @@ export default function SearchDeviceCard({ device, onAssign }: { device: SearchD
         <h3 className="mt-1 break-words text-lg font-semibold leading-snug text-slate-900 [overflow-wrap:anywhere]">{device.device_name || 'Unnamed device'}</h3>
       </div>
     </div>
-    <p className={`mt-4 inline-flex max-w-full rounded-lg px-3 py-1.5 text-xs font-medium leading-relaxed ring-1 ring-inset ${statusStyle(status)}`}>{status}</p>
+    <p className={`mt-4 inline-flex max-w-full rounded-lg px-3 py-1.5 text-xs font-medium leading-relaxed ring-1 ring-inset ${deviceHealthInfo[deviceHealth(status)].classes}`}>{status}</p>
     <dl className="mt-5 grid min-w-0 gap-x-5 gap-y-4 text-sm sm:grid-cols-2">
       {[{ label: 'IMEI', value: device.imei, Icon: FiHash }, { label: 'Model', value: device.model, Icon: FiInfo }, { label: 'Device phone', value: device.phone, Icon: FiSmartphone }].map(({ label, value, Icon }) => <div key={label} className="min-w-0">
         <dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><Icon className="shrink-0" aria-hidden="true" />{label}</dt>

@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { FiArrowLeft, FiUser, FiPrinter, FiRefreshCw, FiEdit2, FiCheck } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
 import { Account, Device, Invoice, Receipt, categories, currency, financeApi, statusLabel, vehicleName } from '@/lib/finance';
 import InvoiceWizard from '@/components/finance/InvoiceWizard';
@@ -76,7 +77,18 @@ export default function FinancePage() {
     </>}
     {mode === 'form' && <InvoiceWizard invoice={editing} userId={userId} deviceId={deviceId} onClose={() => setMode(selected ? 'detail' : 'list')} onSaved={invoice => { void run(async () => { await openInvoice(invoice); await refresh(); }); }} />}
     {mode === 'detail' && selected && <>
-      <div className="finance-no-print flex flex-wrap items-center justify-between gap-3"><button className={secondaryClass} onClick={() => setMode('list')}>All invoices</button><div className="flex flex-wrap gap-2">{selected.customer.traccar_user_id && <a className={secondaryClass} href={`/search?user_id=${selected.customer.traccar_user_id}`}>View client profile</a>}<button className={secondaryClass} disabled={busy} onClick={() => void run(async () => { await openInvoice(await financeApi<Invoice>(`invoices/${selected.id}`)); })}>Reload</button><button className={secondaryClass} onClick={() => window.print()}>Print / save PDF</button>{selected.status === 'draft' && <><button className={secondaryClass} onClick={() => { setEditing(selected); setUserId(undefined); setDeviceId(undefined); setMode('form'); }}>Edit draft</button><button className={actionClass} disabled={busy} onClick={() => void run(() => action('finalize'))}>Finalize invoice</button></>}</div></div>
+      <div className="finance-no-print space-y-3">
+        <nav aria-label="Invoice actions" className="invoice-toolbar">
+          <button className="invoice-action" aria-label="All invoices" title="All invoices" onClick={() => setMode('list')}><FiArrowLeft aria-hidden="true" /><span className="sm:hidden">Invoices</span><span className="hidden sm:inline">All invoices</span></button>
+          {selected.customer.traccar_user_id && <a className="invoice-action" aria-label="View client profile" title="View client profile" href={`/search?user_id=${selected.customer.traccar_user_id}`}><FiUser aria-hidden="true" /><span className="sm:hidden">Profile</span><span className="hidden sm:inline">View client profile</span></a>}
+          <button className="invoice-action" aria-label="Print / save PDF" title="Print / save PDF" onClick={() => window.print()}><FiPrinter aria-hidden="true" /><span className="sm:hidden">Print</span><span className="hidden sm:inline">Print / save PDF</span></button>
+          <button className="invoice-action" aria-label="Reload" title="Reload" disabled={busy} onClick={() => void run(async () => { await openInvoice(await financeApi<Invoice>(`invoices/${selected.id}`)); })}><FiRefreshCw aria-hidden="true" /><span>Reload</span></button>
+        </nav>
+        {selected.status === 'draft' && <div className="flex flex-wrap gap-2">
+          <button className={secondaryClass} onClick={() => { setEditing(selected); setUserId(undefined); setDeviceId(undefined); setMode('form'); }}><FiEdit2 aria-hidden="true" />Edit draft</button>
+          <button className={actionClass} disabled={busy} onClick={() => void run(() => action('finalize'))}><FiCheck aria-hidden="true" />Finalize invoice</button>
+        </div>}
+      </div>
       <InvoicePaper invoice={selected} />
       <div className="finance-no-print space-y-5">
         {!selected.customer.traccar_user_id && selected.status !== 'void' && <section className="finance-card space-y-3"><h2 className="font-semibold">Link an existing customer account</h2><CustomerPicker disabled={busy} onAccount={async id => { await action('link-customer', { user_id: id }); setDevices((await financeApi<{ devices: Device[] }>(`customers/${id}`)).devices); }} /></section>}

@@ -18,11 +18,17 @@ from playwright.sync_api import sync_playwright, expect
 from werkzeug.serving import make_server
 from test_profile_renewal import ProfileRenewalTests
 from routes.finance import finance_bp
+from config import db
+from sqlalchemy import text
 
 
 def main():
     fixture = ProfileRenewalTests()
     fixture.setUp()
+    with fixture.app.app_context():
+        db.session.execute(text("INSERT INTO tc_devices (id, name, uniqueid) VALUES (13, 'Offline vehicle', '11111'), (14, 'Failed vehicle', '22222')"))
+        db.session.execute(text("INSERT INTO tc_user_device VALUES (42, 13), (42, 14)"))
+        db.session.commit()
     fixture.app.register_blueprint(finance_bp, url_prefix='/backend/finance', name='renewal_browser')
     paid = fixture.issued()
     unpaid = fixture.issued(pay=None, key='unpaid')
@@ -65,7 +71,9 @@ def main():
                 'user_profiles': [{'id': '42', 'name': 'Ada Customer With A Long Business Name',
                     'email': 'customer.' + 'x' * 65 + '@example.com', 'status': 'Expired', 'expiry': '2020-02-29T12:34:56Z'}],
             }, {'device_id': '11', 'device_name': 'Camry', 'imei': '67890', 'model': '', 'phone': '',
-                'online_status': {'status': 'NOC Passed Online'}, 'user_profiles': []}]
+                'online_status': {'status': 'NOC Passed Online'}, 'user_profiles': []},
+                {'device_id': '13', 'device_name': 'Offline vehicle', 'imei': '11111', 'model': 'GPS_D_V4', 'online_status': {'status': 'Device is Offline'}},
+                {'device_id': '14', 'device_name': 'Failed vehicle', 'imei': '22222', 'model': 'GPS_D_V4', 'online_status': {'status': 'NOC Failed Online'}}]
 
             def search_response(route):
                 term = parse_qs(urlparse(route.request.url).query).get('term', [''])[0]
@@ -83,12 +91,19 @@ def main():
             page.on('console', lambda message: errors.append(message.text) if 'same key' in message.text else None)
             page.goto('http://127.0.0.1:3108/search')
             page.get_by_role('button', name='Open search', exact=True).click()
+            expect(page.locator('#workspace-search')).to_be_visible()
+            assert page.locator('#workspace-search').bounding_box()['width'] <= 448, 'Desktop search should remain compact'
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('Ada')
             page.get_by_role('button', name='Search', exact=True).click()
             expect(page.get_by_placeholder('e.g. GGE 173 XN or user@email.com')).to_have_count(0)
             expect(page.get_by_role('heading', name='Customer workspace', exact=True)).to_be_visible()
             actions = page.get_by_role('group', name='Profile actions')
             expect(actions.get_by_role('button')).to_have_count(3)
+            expect(page.get_by_text('4 Assets', exact=True)).to_be_visible()
+            counts = page.get_by_label('Fleet status')
+            for label in ['NOC passed', 'NOC failed', 'Offline', 'Infrequent updates']:
+                metric = counts.locator('div').filter(has=page.get_by_text(label, exact=True))
+                expect(metric.locator('dd')).to_have_text('1')
             for label in ['Extend Profile Expiry', 'Finance History', 'View Devices']:
                 expect(actions.get_by_role('button', name=label)).to_have_attribute('aria-expanded', 'false')
             page.screenshot(path=str(output / 'profile-desktop.png'), full_page=True)
@@ -99,7 +114,10 @@ def main():
             actions.get_by_role('button', name='View Devices').click()
             expect(finance).not_to_be_visible()
             device_panel = page.get_by_role('region', name='Devices', exact=True)
-            expect(device_panel.get_by_role('article')).to_have_count(2)
+            expect(device_panel.get_by_role('article')).to_have_count(4)
+            expect(device_panel.get_by_text('NOC Passed Online', exact=True)).to_have_class(re.compile('text-green-800'))
+            expect(device_panel.get_by_text('NOC Failed Online', exact=True)).to_have_class(re.compile('text-red-800'))
+            expect(device_panel.get_by_text('Device is Offline', exact=True)).to_have_class(re.compile('bg-slate-700'))
             device_panel.locator('summary').first.click()
             expect(device_panel.get_by_text('customer.' + 'x' * 65 + '@example.com')).to_be_visible()
             for width in [320, 390, 768, 1440]:
@@ -147,6 +165,8 @@ def main():
             expect(panel.get_by_role('checkbox', name='Corolla')).to_be_checked()
             page.screenshot(path=str(output / 'renewal-desktop.png'), full_page=True)
             page.set_viewport_size({'width': 390, 'height': 844})
+            actions.get_by_role('button', name='Finance History').click()
+            actions.get_by_role('button', name='Extend Profile Expiry').click()
             expect(confirm).to_be_visible()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile overflow'
             page.wait_for_function("document.querySelector('[aria-label=\"Profile actions\"]').getBoundingClientRect().top < 200")
@@ -164,6 +184,16 @@ def main():
             expect(page.get_by_text('Renewal vehicles (1): Corolla (12345)', exact=True)).to_be_visible()
             expect(page.get_by_text('Applied', exact=True)).to_be_visible()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Invoice mobile overflow'
+            invoice_actions = page.get_by_role('navigation', name='Invoice actions')
+            for width in [320, 390]:
+                page.set_viewport_size({'width': width, 'height': 844})
+                buttons = invoice_actions.locator('a, button')
+                expect(buttons).to_have_count(4)
+                boxes = [button.bounding_box() for button in buttons.all()]
+                assert max(box['y'] for box in boxes) - min(box['y'] for box in boxes) < 2, 'Invoice actions must fit one row'
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Invoice actions overflow'
+            page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
+            page.screenshot(path=str(output / 'invoice-actions-mobile.png'), animations='disabled')
             page.screenshot(path=str(output / 'renewal-invoice-audit.png'), full_page=True)
             page.emulate_media(media='print')
             expect(page.get_by_text('Profile expiry extension', exact=True)).not_to_be_visible()
@@ -223,7 +253,10 @@ def main():
                 if route_path == '/onboard_user':
                     expect(page.get_by_role('link', name='Back to finance', exact=True)).to_have_count(0)
                 if route_path != '/login':
-                    expect(page.get_by_role('button', name='Open navigation', exact=True)).not_to_be_visible()
+                    nav = page.get_by_role('navigation', name='Main navigation')
+                    expect(nav).to_be_visible()
+                    box = nav.bounding_box()
+                    assert box['x'] >= 1440 - 113 and box['width'] <= 113, 'Desktop navigation must be on the right'
             page.goto('http://127.0.0.1:3108/finance?new=1')
             page.get_by_role('link', name='Onboard a customer first', exact=True).click()
             expect(page.get_by_role('link', name='Back to finance', exact=True)).to_be_visible()
@@ -233,10 +266,23 @@ def main():
             page.get_by_role('radio', name='Bulk', exact=True).click()
             expect(page.get_by_role('radio', name='Bulk', exact=True)).to_have_attribute('data-state', 'on')
             page.screenshot(path=str(output / 'add-device-mobile.png'), full_page=True, animations='disabled')
-            page.get_by_role('button', name='Open navigation', exact=True).click()
-            page.get_by_role('link', name='Onboard Users', exact=True).click()
+            page.get_by_role('navigation', name='Main navigation').get_by_role('link', name='Onboard Users', exact=True).click()
             expect(page.get_by_role('heading', name='Onboard New User')).to_be_visible()
             expect(page.get_by_role('link', name='Back to finance', exact=True)).to_have_count(0)
+            page.goto('http://127.0.0.1:3108/')
+            expect(page.get_by_role('heading', name='Your workspace')).to_be_visible()
+            for width, height in [(320, 568), (390, 844), (768, 1024), (844, 390)]:
+                page.set_viewport_size({'width': width, 'height': height})
+                assert page.evaluate('document.documentElement.scrollHeight <= innerHeight + 1'), f'Home must fit one screen at {width}x{height}'
+                nav = page.get_by_role('navigation', name='Main navigation')
+                box = nav.bounding_box()
+                assert abs(box['y'] + box['height'] - height) < 2, 'Mobile navigation must stay at the bottom'
+                last_card = page.get_by_role('region', name='Quick actions').get_by_role('link').last.bounding_box()
+                assert last_card['y'] + last_card['height'] <= box['y'], 'Bottom navigation overlaps home cards'
+                if width == 390:
+                    page.screenshot(path=str(output / 'home-mobile.png'), animations='disabled')
+            page.set_viewport_size({'width': 1440, 'height': 1000})
+            page.screenshot(path=str(output / 'home-desktop.png'), animations='disabled')
             assert not errors, errors
             browser.close()
             print('Browser checks passed: paid-only selection, required vehicles, old-expiry warning, responsive profile actions, long device details at 320/390/768/1440px, preserved renewal selections, profile/invoice audit, safe pending retry; no browser errors.')

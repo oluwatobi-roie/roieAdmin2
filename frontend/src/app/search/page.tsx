@@ -161,7 +161,7 @@ export default function SearchPage() {
             </div>
             <Button ref={searchToggle} type="button" size="icon" aria-label={searchOpen ? 'Close search' : 'Open search'} aria-expanded={searchOpen} aria-controls="workspace-search" onClick={() => setSearchOpen(previous => !previous)} className="roie-icon-button h-11 w-11 shrink-0 bg-blue-700 text-white hover:bg-blue-800">{searchOpen ? <FiX aria-hidden="true" /> : <FiSearch aria-hidden="true" />}</Button>
           </div>
-          {searchOpen && <form id="workspace-search" className="workspace-reveal mt-3 flex gap-2" onSubmit={event => { event.preventDefault(); handleSearch(); }}>
+          {searchOpen && <form id="workspace-search" className="workspace-reveal mt-3 flex gap-2 lg:ml-auto lg:max-w-md" onSubmit={event => { event.preventDefault(); handleSearch(); }}>
             <label htmlFor="record-search" className="sr-only">Customer email or device details</label>
             <Input ref={searchInput} id="record-search" type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={event => setQuery(event.target.value)} className="h-11 min-w-0 flex-1 border-slate-300 shadow-none" />
             <Button type="submit" disabled={loading || !query.trim()} className="h-11 bg-blue-700 px-4 text-white hover:bg-blue-800">{loading ? 'Searching...' : 'Search'}</Button>
@@ -186,7 +186,7 @@ export default function SearchPage() {
                 <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiCalendar aria-hidden="true" />Profile expiry</dt><dd className="mt-1.5 font-medium leading-relaxed">{expiryLabel(userProfile.expiry)}</dd></div>
               </dl>
             </div>
-            {userProfile.id && <div className="px-4 pb-4 sm:px-6 sm:pb-5"><CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} /></div>}
+            {userProfile.id && <div className="px-4 pb-4 sm:px-6 sm:pb-5"><CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} devices={results} /></div>}
           </div>
 
           <div ref={profileActionsRef} role="group" aria-label="Profile actions" className="profile-nav grid grid-cols-3 gap-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-1.5 sm:gap-3 sm:p-2">
