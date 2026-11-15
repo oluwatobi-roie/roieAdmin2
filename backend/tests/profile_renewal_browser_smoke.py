@@ -98,6 +98,13 @@ def main():
             page.emulate_media(media='print')
             expect(page.get_by_text('Profile expiry extension', exact=True)).not_to_be_visible()
             page.emulate_media(media='screen')
+            profile_link = page.get_by_role('link', name='View client profile', exact=True)
+            expect(profile_link).to_have_attribute('href', '/search?user_id=42')
+            with page.expect_request('**/api/search?user_id=42'):
+                profile_link.click()
+            expect(page.get_by_role('heading', name='Ada', exact=True)).to_be_visible()
+            expect(page.get_by_role('button', name='Extend profile expiry')).to_be_visible()
+            assert '/search?user_id=42' in page.url
             # A dropped request leaves an actionable pending record. Retry must
             # use its original target, then disappear once reconciled.
             another = fixture.issued(key='retry')

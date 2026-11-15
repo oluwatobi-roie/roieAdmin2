@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import CustomerProfileSummary from '@/components/CustomerProfileSummary';
 import FinanceHistory from '@/components/FinanceHistory';
 import ProfileRenewal from '@/components/ProfileRenewal';
@@ -58,22 +58,24 @@ export default function SearchPage() {
   const [assignLoading, setAssignLoading] = useState(false);
 
   // ─── Search Handler ───
-  const handleSearch = async () => {
-    if (!query) return;
+  const searchRequest = useRef<AbortController | null>(null);
+  const loadSearch = useCallback(async (parameters: URLSearchParams) => {
+    searchRequest.current?.abort();
+    const controller = new AbortController();
+    searchRequest.current = controller;
     setLoading(true);
     setFeedback('');
     setResults([]);
     setUserProfile(null);
-
     try {
-      const res = await fetch(`/api/search?term=${query}`);
+      const res = await fetch(`/api/search?${parameters}`, { signal: controller.signal });
       const data: SearchResponse | Device[] = await res.json();
-
+      if (controller.signal.aborted) return;
+      if (!res.ok) throw new Error(res.status === 404 ? 'Customer or device not found.' : 'Unable to load this record. Please try again.');
       if (!data || (Array.isArray(data) && data.length === 0) || (!Array.isArray(data) && !data.user && !data.devices?.length)) {
         setFeedback('No results found.');
         return;
       }
-
       if (Array.isArray(data)) {
         setResults(data);
       } else {
@@ -81,11 +83,21 @@ export default function SearchPage() {
         setUserProfile(data.user || null);
       }
     } catch (err) {
-      console.error('Search error:', err);
-      setFeedback('Error occurred while searching.');
+      if (!controller.signal.aborted) setFeedback((err as Error).message || 'Error occurred while searching.');
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!authenticated) return;
+    const userId = new URLSearchParams(window.location.search).get('user_id');
+    if (userId !== null) void loadSearch(new URLSearchParams({ user_id: userId }));
+    return () => searchRequest.current?.abort();
+  }, [authenticated, loadSearch]);
+
+  const handleSearch = () => {
+    if (query.trim()) void loadSearch(new URLSearchParams({ term: query.trim() }));
   };
 
   const openAssignModal = (device: Device) => {

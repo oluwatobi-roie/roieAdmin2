@@ -1,26 +1,33 @@
 from .common import request, jsonify, datetime, timezone, db, text, exclude_users_list
 from routes.devices import device_bp
 from services.login_required import login_required
+from sqlalchemy import bindparam
 
 # /api/device/search
 @device_bp.route('/search', methods=['GET'])
 @login_required
 def search_device_or_user():
-    search = request.args.get('term')
-    if not search:
+    search = request.args.get('term', '')
+    user_id = request.args.get('user_id')
+    if user_id is not None and (not user_id.isascii() or not user_id.isdigit() or len(user_id) > 19 or not 0 < int(user_id) <= 9223372036854775807):
+        return jsonify({'error': 'Invalid customer account ID'}), 400
+    if user_id is None and not search:
         return jsonify({"error": "Missing search parameter"}), 400
 
     # ─────────────────────────────────────────────────────────────────────────
     #  A.  SEARCH BY USER E‑MAIL  →  return USER PROFILE  (+ all their devices)
     # ─────────────────────────────────────────────────────────────────────────
-    if '@' in search:
+    if user_id is not None or '@' in search:
         # 1. find the user
-        user_row = db.session.execute(text("""
+        # Invoice links use the stable account ID, even if the email changed.
+        condition = "id = :user_id" if user_id is not None else "email LIKE :email"
+        parameters = {"user_id": int(user_id)} if user_id is not None else {"email": search}
+        user_row = db.session.execute(text(f"""
             SELECT id, name, email, phone, expirationtime, disabled
             FROM tc_users
-            WHERE email LIKE :email
+            WHERE {condition}
             LIMIT 1
-        """), {"email": search}).fetchone()
+        """), parameters).fetchone()
 
         if not user_row:
             return jsonify({"error": "User not found"}), 404
@@ -44,7 +51,7 @@ def search_device_or_user():
         if group_ids:
             group_devices = db.session.execute(text("""
                 SELECT id FROM tc_devices WHERE groupid IN :gids
-            """), {"gids": tuple(group_ids)}).scalars().all()
+            """).bindparams(bindparam("gids", expanding=True)), {"gids": tuple(group_ids)}).scalars().all()
             device_ids.update(group_devices)
 
         if not device_ids:
@@ -72,7 +79,7 @@ def search_device_or_user():
             LEFT JOIN tc_positions p ON p.id = d.positionid
             LEFT JOIN tc_groups    g ON g.id = d.groupid
             WHERE d.id IN :dids
-        """)
+        """).bindparams(bindparam("dids", expanding=True))
         device_rows = db.session.execute(devices_sql, {"dids": tuple(device_ids)}).fetchall()
 
         device_profiles = [_build_device_profile(dev) for dev in device_rows]
