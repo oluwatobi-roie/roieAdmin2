@@ -1,6 +1,7 @@
 """Staff-only finance API. SQL access here is strictly read-only."""
 import copy
 import os
+import uuid
 from pathlib import Path
 
 import requests
@@ -11,7 +12,8 @@ from config import TRACCAR_API_URL, db
 from routes.devices.common import admin_user_list, exclude_users_list
 from services.finance import (CATEGORIES, FinanceError, Ledger, audit, calculate_tasks,
     check_revision, clean_customer, clean_phone, clean_text, finalize, get_invoice,
-    invoice_view, invoice_totals, prepare_entries, record_payment, receipt_view, save_draft)
+    invoice_view, invoice_totals, now, prepare_entries, record_payment, receipt_view, save_draft)
+from services.profile_renewal import account_lock, canonical_expiry, eligible_devices, next_expiry
 from services.payment_proof import prepare_proof, save_proof
 
 finance_bp = Blueprint("finance", __name__)
@@ -155,24 +157,25 @@ def sync_phone(user_id):
     payload = body()
     phone = clean_phone(payload.get("phone", ""))
     cookies = {"JSESSIONID": request.cookies["session_token"]}
-    try:
-        response = requests.get(TRACCAR_API_URL + f"users/{user_id}", cookies=cookies, timeout=15)
-        response.raise_for_status()
-        current = response.json()
-        if current.get("id") != user_id:
-            raise FinanceError("RoieTrackers returned a different customer.", 502)
-        if (current.get("phone") or "") != payload.get("expected_phone", ""):
-            raise FinanceError("RoieTrackers phone changed. Reload the customer before updating it.", 409)
-        # Traccar PUT expects the user object: preserve everything and change only phone.
-        current["phone"] = phone
-        response = requests.put(TRACCAR_API_URL + f"users/{user_id}", cookies=cookies,
-                                json=current, timeout=15)
-        response.raise_for_status()
-    except (requests.RequestException, ValueError) as exc:
-        if isinstance(exc, FinanceError):
-            raise
-        raise FinanceError("Phone update could not be confirmed. Reload the customer before retrying.", 502) from exc
-    return jsonify(phone=phone)
+    with account_lock(ledger().directory, user_id):
+        try:
+            response = requests.get(TRACCAR_API_URL + f"users/{user_id}", cookies=cookies, timeout=15)
+            response.raise_for_status()
+            current = response.json()
+            if current.get("id") != user_id:
+                raise FinanceError("RoieTrackers returned a different customer.", 502)
+            if (current.get("phone") or "") != payload.get("expected_phone", ""):
+                raise FinanceError("RoieTrackers phone changed. Reload the customer before updating it.", 409)
+            # Traccar PUT expects the user object: preserve everything and change only phone.
+            current["phone"] = phone
+            response = requests.put(TRACCAR_API_URL + f"users/{user_id}", cookies=cookies,
+                                    json=current, timeout=15)
+            response.raise_for_status()
+        except (requests.RequestException, ValueError) as exc:
+            if isinstance(exc, FinanceError):
+                raise
+            raise FinanceError("Phone update could not be confirmed. Reload the customer before retrying.", 502) from exc
+        return jsonify(phone=phone)
 
 
 @finance_bp.post("/preview")
@@ -356,3 +359,140 @@ def customer_summary(user_id):
     return jsonify(vehicle_count=len(customer_devices(user_id)), finance_status=status,
                    paid_minor=paid, balance_minor=balance,
                    unpaid_invoice_count=sum(i["balance_minor"] > 0 for i in values))
+
+
+# Expiry is an account property. Vehicles below are immutable invoice/audit links;
+# this action never changes device records or writes to SQL directly.
+def renewal_account(user_id):
+    try:
+        response = requests.get(TRACCAR_API_URL + f"users/{user_id}",
+            cookies={"JSESSIONID": request.cookies.get("session_token")}, timeout=8)
+        if response.status_code != 200:
+            raise FinanceError("Could not load this profile from RoieTrackers. Check account access and retry.", 503)
+        account = response.json()
+        if not isinstance(account, dict) or account.get("id") != user_id:
+            raise FinanceError("RoieTrackers returned an unexpected profile.", 503)
+        return account
+    except (requests.RequestException, ValueError) as exc:
+        if isinstance(exc, FinanceError):
+            raise
+        raise FinanceError("Could not verify the live profile. Please retry.", 503) from exc
+
+
+@finance_bp.get("/customers/<int:user_id>/renewal-options")
+def renewal_options(user_id):
+    user_record(user_id)
+    account = renewal_account(user_id)
+    devices = customer_devices(user_id)
+    invoices, history = [], []
+    with ledger().transaction() as data:
+        for invoice in data["invoices"].values():
+            if invoice["customer"].get("traccar_user_id") != user_id:
+                continue
+            operation = invoice.get("renewal_extension")
+            if operation:
+                history.append(copy.deepcopy(operation))
+                continue
+            available = eligible_devices(invoice, user_id, devices)
+            if available:
+                invoices.append({"id": invoice["id"], "number": invoice["number"],
+                    "revision": invoice["revision"], "devices": available})
+    reason = None
+    try:
+        proposed = next_expiry(account.get("expirationTime"))
+    except FinanceError as exc:
+        proposed, reason = None, str(exc)
+    return jsonify(expiration_time=account.get("expirationTime"), proposed_expiration_time=proposed,
+        disabled=bool(account.get("disabled")), unavailable_reason=reason,
+        invoices=invoices, history=sorted(history, key=lambda item: item["requested_at"], reverse=True))
+
+
+@finance_bp.post("/customers/<int:user_id>/extend-expiry")
+def extend_profile_expiry(user_id):
+    user_record(user_id)
+    payload = body()
+    invoice_id = clean_text(payload.get("invoice_id", ""), "Invoice ID")
+    request_key = clean_text(payload.get("request_key", ""), "Request key")
+    selected = payload.get("device_ids")
+    if (not isinstance(selected, list) or not selected or len(selected) > 1000
+            or any(type(value) is not int or value <= 0 for value in selected)
+            or len(set(selected)) != len(selected)):
+        raise FinanceError("Select distinct vehicles from the paid invoice's Renewal section.")
+    selected = sorted(selected)
+    expected = canonical_expiry(payload.get("expected_expiration_time"))
+    store = ledger()
+    with account_lock(store.directory, user_id):
+        with store.transaction() as data:
+            invoice = get_invoice(data, invoice_id)
+            if invoice["customer"].get("traccar_user_id") != user_id:
+                raise FinanceError("The invoice belongs to a different customer.", 409)
+            operation = copy.deepcopy(invoice.get("renewal_extension"))
+            if operation:
+                if (operation["request_key"] != request_key or operation["device_ids"] != selected
+                        or operation["previous_expiration_time"] != expected):
+                    raise FinanceError("This invoice already has a profile extension. Reload its renewal history.", 409)
+                if operation["state"] == "applied":
+                    return jsonify(extension=operation)
+            for other in data["invoices"].values():
+                prior = other.get("renewal_extension")
+                if prior and prior["request_key"] == request_key and other["id"] != invoice_id:
+                    raise FinanceError("This request key has already been used for another invoice.", 409)
+                if (other["id"] != invoice_id and prior and prior["user_id"] == user_id
+                        and prior["state"] == "pending"):
+                    raise FinanceError("Resolve the pending profile extension before using another invoice.", 409)
+        account = renewal_account(user_id)
+        current_expiry = canonical_expiry(account.get("expirationTime"))
+        if operation is None:
+            if current_expiry != expected:
+                raise FinanceError("The profile expiry changed. Reload before extending it.", 409)
+            with store.transaction(write=True) as data:
+                invoice = get_invoice(data, invoice_id)
+                check_revision(invoice, payload)
+                available = {device["id"]: device for device in eligible_devices(invoice, user_id, customer_devices(user_id))}
+                if not set(selected).issubset(available):
+                    raise FinanceError("Use a fully paid invoice and select vehicles in its Renewal section that still belong to this customer.", 409)
+                operation = {"id": str(uuid.uuid4()), "request_key": request_key, "state": "pending",
+                    "invoice_id": invoice_id, "invoice_number": invoice["number"], "user_id": user_id,
+                    "device_ids": selected, "devices": [available[key] for key in selected],
+                    "previous_expiration_time": expected, "expiration_time": next_expiry(expected),
+                    "requested_at": now(), "actor": copy.deepcopy(g.finance_actor)}
+                invoice["renewal_extension"] = operation
+                audit(invoice, "profile_extension_requested", g.finance_actor, extension_id=operation["id"],
+                    device_ids=selected, previous_expiration_time=expected, expiration_time=operation["expiration_time"])
+            # The intent, immutable target date and vehicle snapshots are durable
+            # before any remote write. Retries always use this same target date.
+        target = operation["expiration_time"]
+        if current_expiry not in (expected, target):
+            raise FinanceError("The live expiry differs from both recorded dates. No change was made. Ask an administrator to reconcile this pending extension.", 409)
+        if current_expiry != target:
+            with store.transaction() as data:
+                invoice = get_invoice(data, invoice_id)
+                available = {device["id"] for device in eligible_devices(invoice, user_id, customer_devices(user_id))}
+                if not set(selected).issubset(available):
+                    raise FinanceError("Invoice payment or vehicle ownership changed. This pending extension requires reconciliation.", 409)
+            updated = copy.deepcopy(account)
+            updated["expirationTime"] = target
+            try:
+                response = requests.put(TRACCAR_API_URL + f"users/{user_id}", json=updated,
+                    cookies={"JSESSIONID": request.cookies.get("session_token")}, timeout=8)
+                if response.status_code not in (200, 204):
+                    return jsonify(extension=operation, error="RoieTrackers did not accept the update. Check account permissions, then retry this pending extension."), 202
+            except requests.RequestException:
+                # The server might have committed despite a timeout. Read back
+                # before deciding; never calculate another year on a retry.
+                pass
+        try:
+            confirmed = renewal_account(user_id)
+            if canonical_expiry(confirmed.get("expirationTime")) != target:
+                raise FinanceError("Expiry not confirmed.", 503)
+        except FinanceError:
+            return jsonify(extension=operation, error="The extension is not confirmed yet. Use Verify / retry in renewal history; do not create another extension."), 202
+        with store.transaction(write=True) as data:
+            invoice = get_invoice(data, invoice_id)
+            operation = invoice["renewal_extension"]
+            operation.update(state="applied", applied_at=now(), verified_by=copy.deepcopy(g.finance_actor),
+                disabled=bool(confirmed.get("disabled")))
+            audit(invoice, "profile_extended", g.finance_actor, extension_id=operation["id"],
+                device_ids=selected, previous_expiration_time=expected, expiration_time=target)
+            result = copy.deepcopy(operation)
+        return jsonify(extension=result)

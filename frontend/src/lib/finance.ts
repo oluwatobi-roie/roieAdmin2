@@ -17,6 +17,7 @@ export type Invoice = Preview & {
   status: 'draft' | 'issued' | 'void'; currency: string; created_at: string; issued_at?: string;
   due_date: string; notes: string; paid_minor: number; balance_minor: number; payment_status: string;
   payments: Payment[];
+  renewal_extension?: ProfileExtension;
   events: { at: string; action: string; actor: { name: string }; reason?: string }[];
 };
 export const categories: Record<Category, { label: string; defaultTotal: string }> = {
@@ -102,4 +103,28 @@ export function readProof(file: File): Promise<ProofInput> {
     reader.onerror = () => reject(new Error('Could not read the screenshot.'));
     reader.readAsDataURL(file);
   });
+}
+
+export type ProfileExtension = {
+  id: string; request_key: string; state: 'pending' | 'applied';
+  invoice_id: string; invoice_number: string; user_id: number;
+  device_ids: number[]; devices: (Device & { entry_ids: string[] })[];
+  previous_expiration_time: string; expiration_time: string;
+  requested_at: string; applied_at?: string; disabled?: boolean;
+  actor: { id: number; name: string }; verified_by?: { id: number; name: string };
+};
+export type RenewalOptions = {
+  expiration_time: string | null; proposed_expiration_time: string | null;
+  disabled: boolean; unavailable_reason: string | null;
+  invoices: { id: string; number: string; revision: number; devices: Device[] }[];
+  history: ProfileExtension[];
+};
+
+// Search returns SQL timestamps without a zone; those timestamps are UTC.
+// Keep profile, confirmation and audit dates consistent in every browser zone.
+export function expiryLabel(value: string | null): string {
+  if (!value) return 'No expiry';
+  const date = new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : value + 'Z');
+  if (!Number.isFinite(date.getTime())) return 'Invalid expiry date';
+  return date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC';
 }

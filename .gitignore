@@ -69,3 +69,12 @@ frontend/.next-finance-qa/
 
 # Server-only deployment releases and state
 .deploy/
+
+# Generated profile-renewal browser checks
+/output/renewal-qa/
+
+# Local renewal build without replacing existing build output
+frontend/.next-renewal-check/
+
+# Machine-specific local environment settings
+.env.local

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import CustomerProfileSummary from '@/components/CustomerProfileSummary';
 import FinanceHistory from '@/components/FinanceHistory';
+import ProfileRenewal from '@/components/ProfileRenewal';
+import { expiryLabel } from '@/lib/finance';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,7 +18,7 @@ interface UserProfile {
   email: string;
   phone?: string;
   status: string;
-  expiry: string;
+  expiry: string | null;
 }
 
 interface DeviceStatus {
@@ -170,8 +172,9 @@ export default function SearchPage() {
                 </div>
                 <p className="flex items-center gap-2 text-gray-700"><FiMail /> {userProfile.email}</p>
                 <p className="flex items-center gap-2 text-gray-700"><FiSmartphone /> {userProfile.phone}</p>
-                <p className="flex items-center gap-2 text-gray-700"><FiCalendar /> Expiry: {new Date(userProfile.expiry).toLocaleString()}</p>
-                {userProfile.id && <CustomerProfileSummary key={userProfile.id} userId={userProfile.id} />}
+                <p className="flex items-center gap-2 text-gray-700"><FiCalendar /> Expiry: {expiryLabel(userProfile.expiry)}</p>
+                {userProfile.id && <CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} />}
+                {userProfile.id && <ProfileRenewal key={`renewal-${userProfile.id}`} userId={userProfile.id} onUpdated={(expiry, disabled) => setUserProfile(previous => previous && ({ ...previous, expiry, status: disabled ? 'Disabled' : new Date(expiry).getTime() <= Date.now() ? 'Expired' : 'Active' }))} />}
               </CardContent>
             </Card>
             {userProfile.id && <FinanceHistory key={userProfile.id} userId={userProfile.id} />}
@@ -216,7 +219,7 @@ export default function SearchPage() {
                             <div className="text-gray-800 text-sm">
                               <p className="font-medium">{user.name}</p>
                               <p className="text-gray-600">{user.email}</p>
-                              <p className="text-gray-500">Status: <span className="font-semibold">{user.status}</span> | Expiry: {new Date(user.expiry).toLocaleDateString()}</p>
+                              <p className="text-gray-500">Status: <span className="font-semibold">{user.status}</span> | Expiry: {expiryLabel(user.expiry)}</p>
                             </div>
                           </div>
                         ))}

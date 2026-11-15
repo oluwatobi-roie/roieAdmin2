@@ -6,21 +6,26 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/finance/page": [
+    "/login/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/finance/page.css",
-      "static/chunks/app/finance/page.js"
+      "static/css/app/login/layout.css",
+      "static/chunks/app/login/layout.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
     ],
     "/api/auth/check-session/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/auth/check-session/route.js"
     ],
-    "/api/finance/[...path]/route": [
+    "/api/auth/login/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/finance/[...path]/route.js"
+      "static/chunks/app/api/auth/login/route.js"
     ],
     "/page": [
       "static/chunks/webpack.js",
@@ -37,20 +42,16 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/search/route.js"
     ],
-    "/onboard_user/page": [
+    "/finance/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/onboard_user/page.js"
+      "static/css/app/finance/page.css",
+      "static/chunks/app/finance/page.js"
     ],
-    "/api/device/link_device/route": [
+    "/api/finance/[...path]/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/device/link_device/route.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/api/finance/[...path]/route.js"
     ]
   }
 }
