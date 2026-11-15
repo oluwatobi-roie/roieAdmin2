@@ -59,7 +59,8 @@ Tools/*
 # Local invoice ledger and test environment
 backend/data/
 .finance-test-venv/
-frontend/.next/*
+frontend/.next/
+backend/test/*
 
 # Isolated build for finance browser checks
 frontend/.next-finance-qa/*
