@@ -1,9 +1,0 @@
-{
-  "/api/auth/check-session/route": "app/api/auth/check-session/route.js",
-  "/api/search/route": "app/api/search/route.js",
-  "/api/finance/[...path]/route": "app/api/finance/[...path]/route.js",
-  "/page": "app/page.js",
-  "/finance/page": "app/finance/page.js",
-  "/search/page": "app/search/page.js",
-  "/login/page": "app/login/page.js"
-}
