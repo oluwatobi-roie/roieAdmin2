@@ -2,6 +2,8 @@
 Run after building frontend with NEXT_BUILD_DIR=.next-finance-qa.
 """
 import logging
+import re
+from urllib.parse import parse_qs, urlparse
 import os
 from pathlib import Path
 import subprocess
@@ -55,16 +57,68 @@ def main():
             context.add_init_script("Object.defineProperty(globalThis.crypto, 'randomUUID', {value: undefined, configurable: true})")
             context.add_cookies([{'name': 'session_token', 'value': 'test-session', 'url': 'http://127.0.0.1:3108'}])
             context.route('**/api/auth/check-session', lambda route: route.fulfill(json={'authenticated': True}))
-            context.route('**/api/search?*', lambda route: route.fulfill(json={'user': {
-                'id': '42', 'name': 'Ada', 'email': 'ada@example.com', 'phone': '1234',
-                'expiry': fixture.account['expirationTime'], 'status': 'Expired'}, 'devices': []}))
+            devices = [{
+                'device_id': '10', 'device_name': 'LAGOS-DELIVERY-FLEET-' + 'X' * 65,
+                'imei': '123456789012345', 'model': 'GPS_D_V4', 'phone': '+2348012345678',
+                'position_address': 'Loading bay 12, a long industrial estate address, Ikeja, Lagos. Landmark-' + 'A' * 70,
+                'online_status': {'status': 'Likely Online, but not updating frequently', 'recommendation': 'Check device communication and monitor the next position update.'},
+                'user_profiles': [{'id': '42', 'name': 'Ada Customer With A Long Business Name',
+                    'email': 'customer.' + 'x' * 65 + '@example.com', 'status': 'Expired', 'expiry': '2020-02-29T12:34:56Z'}],
+            }, {'device_id': '11', 'device_name': 'Camry', 'imei': '67890', 'model': '', 'phone': '',
+                'online_status': {'status': 'NOC Passed Online'}, 'user_profiles': []}]
+
+            def search_response(route):
+                term = parse_qs(urlparse(route.request.url).query).get('term', [''])[0]
+                if term == 'device-only':
+                    route.fulfill(json=devices)
+                else:
+                    route.fulfill(json={'user': {
+                        'id': '42', 'name': 'Ada', 'email': 'ada@example.com', 'phone': '1234',
+                        'expiry': fixture.account['expirationTime'], 'status': 'Expired'},
+                        'devices': [] if term == 'empty-fleet' else devices})
+            context.route('**/api/search?*', search_response)
             page = context.new_page()
             errors = []
             page.on('pageerror', lambda error: errors.append(str(error)))
+            page.on('console', lambda message: errors.append(message.text) if 'same key' in message.text else None)
             page.goto('http://127.0.0.1:3108/search')
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('Ada')
             page.get_by_role('button', name='Search', exact=True).click()
-            page.get_by_role('button', name='Extend profile expiry').click()
+            actions = page.get_by_role('group', name='Profile actions')
+            expect(actions.get_by_role('button')).to_have_count(3)
+            for label in ['Extend Profile Expiry', 'Finance History', 'View Devices']:
+                expect(actions.get_by_role('button', name=label)).to_have_attribute('aria-expanded', 'false')
+            page.screenshot(path=str(output / 'profile-desktop.png'), full_page=True)
+            actions.get_by_role('button', name='Finance History').click()
+            finance = page.get_by_role('region', name='Finance records')
+            expect(finance.get_by_role('link', name='Generate invoice')).to_be_visible()
+            expect(finance.get_by_role('link', name=re.compile(paid['number']))).to_be_visible()
+            actions.get_by_role('button', name='View Devices').click()
+            expect(finance).not_to_be_visible()
+            device_panel = page.get_by_role('region', name='Devices', exact=True)
+            expect(device_panel.get_by_role('article')).to_have_count(2)
+            device_panel.locator('summary').first.click()
+            expect(device_panel.get_by_text('customer.' + 'x' * 65 + '@example.com')).to_be_visible()
+            for width in [320, 390, 768, 1440]:
+                page.set_viewport_size({'width': width, 'height': 1000})
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), f'Profile overflow at {width}'
+                for card in device_panel.get_by_role('article').all():
+                    assert card.evaluate('(element) => element.scrollWidth <= element.clientWidth + 1'), f'Device overflow at {width}'
+                if width in [390, 1440]:
+                    page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
+                    page.screenshot(path=str(output / f'devices-{width}.png'), full_page=True, animations='disabled')
+            page.set_viewport_size({'width': 390, 'height': 844})
+            device_panel.get_by_role('button', name='Assign to a User').first.click()
+            dialog = page.get_by_role('dialog', name='Assign device')
+            expect(dialog.get_by_label('User email')).to_be_visible()
+            assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Assign dialog overflow'
+            dialog.get_by_role('button', name='Cancel').click()
+            actions.get_by_role('button', name='View Devices').click()
+            expect(device_panel).not_to_be_visible()
+            page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
+            page.screenshot(path=str(output / 'profile-mobile.png'), full_page=True, animations='disabled')
+            page.set_viewport_size({'width': 1440, 'height': 1000})
+            page.get_by_role('button', name='Extend Profile Expiry').click()
             panel = page.get_by_role('region', name='Profile renewal')
             select = panel.get_by_label('Paid renewal invoice')
             expect(select.locator('option')).to_have_count(2)
@@ -77,6 +131,11 @@ def main():
             expect(panel.get_by_text('The profile will still be expired', exact=False)).to_be_visible()
             panel.get_by_role('checkbox', name='Corolla').check()
             expect(confirm).to_be_enabled()
+            actions.get_by_role('button', name='Finance History').click()
+            expect(panel).not_to_be_visible()
+            actions.get_by_role('button', name='Extend Profile Expiry').click()
+            expect(select).to_have_value(paid['id'])
+            expect(panel.get_by_role('checkbox', name='Corolla')).to_be_checked()
             page.screenshot(path=str(output / 'renewal-desktop.png'), full_page=True)
             page.set_viewport_size({'width': 390, 'height': 844})
             expect(confirm).to_be_visible()
@@ -103,7 +162,7 @@ def main():
             with page.expect_request('**/api/search?user_id=42'):
                 profile_link.click()
             expect(page.get_by_role('heading', name='Ada', exact=True)).to_be_visible()
-            expect(page.get_by_role('button', name='Extend profile expiry')).to_be_visible()
+            expect(page.get_by_role('button', name='Extend Profile Expiry')).to_be_visible()
             assert '/search?user_id=42' in page.url
             # A dropped request leaves an actionable pending record. Retry must
             # use its original target, then disappear once reconciled.
@@ -113,7 +172,7 @@ def main():
             page.goto('http://127.0.0.1:3108/search')
             page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('Ada')
             page.get_by_role('button', name='Search', exact=True).click()
-            page.get_by_role('button', name='Extend profile expiry').click()
+            page.get_by_role('button', name='Extend Profile Expiry').click()
             panel = page.get_by_role('region', name='Profile renewal')
             panel.get_by_label('Paid renewal invoice').select_option(another['id'])
             panel.get_by_role('button', name='Select all renewal vehicles').click()
@@ -127,9 +186,18 @@ def main():
             expect(retry).to_have_count(0)
             assert fixture.account['expirationTime'] == '2022-02-28T12:34:56.000Z'
             assert fixture.put.call_count == 3
+            page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('device-only')
+            page.get_by_role('button', name='Search', exact=True).click()
+            expect(page.get_by_role('group', name='Profile actions')).to_have_count(0)
+            expect(page.get_by_role('region', name='Devices', exact=True)).to_be_visible()
+            page.get_by_placeholder('e.g. GGE 173 XN or user@email.com').fill('empty-fleet')
+            page.get_by_role('button', name='Search', exact=True).click()
+            expect(page.get_by_role('button', name='View Devices')).to_have_attribute('aria-expanded', 'false')
+            page.get_by_role('button', name='View Devices').click()
+            expect(page.get_by_text('No devices found for this account.')).to_be_visible()
             assert not errors, errors
             browser.close()
-            print('Browser checks passed: paid-only selection, required vehicles, old-expiry warning, mobile layout, profile/invoice audit, safe pending retry; no browser errors.')
+            print('Browser checks passed: paid-only selection, required vehicles, old-expiry warning, responsive profile actions, long device details at 320/390/768/1440px, preserved renewal selections, profile/invoice audit, safe pending retry; no browser errors.')
     finally:
         process.terminate()
         process.wait(timeout=15)

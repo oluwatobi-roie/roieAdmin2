@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { financeApi, expiryLabel, newRequestKey, ProfileExtension, RenewalOptions } from '@/lib/finance';
 import ExtensionAudit from '@/components/finance/ExtensionAudit';
 
@@ -7,7 +7,6 @@ const button = 'rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white 
 const secondary = 'rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-blue-800 hover:bg-blue-50 disabled:opacity-50';
 
 export default function ProfileRenewal({ userId, onUpdated }: { userId: string; onUpdated: (expiry: string, disabled: boolean) => void }) {
-  const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<RenewalOptions | null>(null);
   const [invoiceId, setInvoiceId] = useState('');
   const [deviceIds, setDeviceIds] = useState<number[]>([]);
@@ -20,17 +19,18 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
   const pending = options?.history.some(item => item.state === 'pending');
   const stillExpired = !!options?.proposed_expiration_time && new Date(options.proposed_expiration_time).getTime() <= Date.now();
 
-  async function load() {
+  const load = useCallback(async () => {
     const result = await financeApi<RenewalOptions>(`customers/${userId}/renewal-options`);
     setOptions(result); setInvoiceId(''); setDeviceIds([]); requestKey.current = '';
     if (result.expiration_time) onUpdated(result.expiration_time, result.disabled);
-  }
-  async function refresh() {
+  }, [userId, onUpdated]);
+  const refresh = useCallback(async () => {
     if (running.current) return;
     running.current = true; setBusy(true); setError(''); setOptions(null);
     try { await load(); } catch (err) { setError((err as Error).message); }
     finally { running.current = false; setBusy(false); }
-  }
+  }, [load]);
+  useEffect(() => { void refresh(); }, [refresh]);
   async function extend(prior?: ProfileExtension) {
     if (running.current || (!prior && (!invoice || !deviceIds.length || !options))) return;
     running.current = true; setBusy(true); setError(''); setMessage('');
@@ -54,9 +54,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
       running.current = false; setBusy(false);
     }
   }
-  return <div className="border-t border-slate-200 pt-3">
-    <button type="button" className={secondary} aria-expanded={open} onClick={() => { setOpen(!open); if (!open) void refresh(); }}>Extend profile expiry</button>
-    {open && <section aria-label="Profile renewal" className="mt-4 space-y-4 text-sm">
+  return <section aria-label="Profile renewal" className="min-w-0 space-y-4 text-sm">
       <p className="text-slate-600">Add one year to the existing expiry date using a fully paid Renewal invoice. This changes expiry for the whole account. Select the vehicles due for renewal to record the invoice link for audit.</p>
       {busy && <p role="status" className="text-blue-700">Checking renewal details...</p>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
@@ -74,7 +72,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
                 {options.invoices.map(item => <option key={item.id} value={item.id}>{item.number} | {item.devices.length} renewal vehicles</option>)}
               </select>
             </label>
-            {invoice && <fieldset disabled={busy} className="space-y-3">
+            {invoice && <fieldset disabled={busy} className="min-w-0 space-y-3">
               <legend className="font-semibold">Vehicles due for renewal</legend>
               <p className="text-slate-500">Only vehicles in this invoice&apos;s Renewal section and still on this account are available.</p>
               <button type="button" className={secondary} onClick={() => { setDeviceIds(deviceIds.length === invoice.devices.length ? [] : invoice.devices.map(device => device.id)); requestKey.current = ''; }}>{deviceIds.length === invoice.devices.length ? 'Clear selection' : 'Select all renewal vehicles'}</button>
@@ -102,6 +100,5 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
           </div>)}</div>
         </details>}
       </>}
-    </section>}
-  </div>;
+  </section>;
 }

@@ -8,34 +8,15 @@ import { expiryLabel } from '@/lib/finance';
 import { useAuth } from '../hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { FiSmartphone, FiHash, FiInfo, FiMapPin, FiUser, FiCpu, FiAlertTriangle, FiCalendar, FiMail } from 'react-icons/fi';
+import SearchDeviceCard, { SearchDevice as Device, SearchUserProfile as UserProfile } from '@/components/SearchDeviceCard';
+import { FiSmartphone, FiUser, FiCpu, FiCalendar, FiMail, FiClock, FiCreditCard, FiChevronDown } from 'react-icons/fi';
 
-// ---------- Types ----------
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  status: string;
-  expiry: string | null;
-}
-
-interface DeviceStatus {
-  status: string;
-  recommendation?: string;
-}
-
-interface Device {
-  device_id: string;
-  device_name: string;
-  imei: string;
-  model: string;
-  phone?: string;
-  position_address?: string;
-  online_status?: DeviceStatus;
-  user_profiles?: UserProfile[];
-}
+type ProfilePanel = 'renewal' | 'finance' | 'devices';
+const profileActions = [
+  { id: 'renewal' as const, label: 'Extend Profile Expiry', Icon: FiClock },
+  { id: 'finance' as const, label: 'Finance History', Icon: FiCreditCard },
+  { id: 'devices' as const, label: 'View Devices', Icon: FiCpu },
+];
 
 interface SearchResponse {
   user?: UserProfile | null;
@@ -51,6 +32,8 @@ export default function SearchPage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [activePanel, setActivePanel] = useState<ProfilePanel | null>(null);
+  const [visitedPanels, setVisitedPanels] = useState<ProfilePanel[]>([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
@@ -67,6 +50,8 @@ export default function SearchPage() {
     setFeedback('');
     setResults([]);
     setUserProfile(null);
+    setActivePanel(null);
+    setVisitedPanels([]);
     try {
       const res = await fetch(`/api/search?${parameters}`, { signal: controller.signal });
       const data: SearchResponse | Device[] = await res.json();
@@ -131,141 +116,93 @@ export default function SearchPage() {
     }
   };
 
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case 'NOC Passed Online': return 'text-green-600 font-semibold';
-      case 'NOC Failed Online': return 'text-red-600 font-semibold';
-      case 'Device is Offline': return 'text-gray-500 font-semibold';
-      case 'Likely Online, but not updating frequently': return 'text-yellow-600 font-semibold';
-      case 'Unknown':
-      default: return 'text-indigo-600 font-semibold';
-    }
+  const profileId = userProfile?.id;
+  const updateProfileExpiry = useCallback((expiry: string, disabled: boolean) => {
+    setUserProfile(previous => previous && previous.id === profileId ? {
+      ...previous, expiry, status: disabled ? 'Disabled' : new Date(expiry).getTime() <= Date.now() ? 'Expired' : 'Active',
+    } : previous);
+  }, [profileId]);
+
+  const togglePanel = (panel: ProfilePanel) => {
+    setVisitedPanels(previous => previous.includes(panel) ? previous : [...previous, panel]);
+    setActivePanel(previous => previous === panel ? null : panel);
   };
 
-  const getRecommendationStyles = (recommendation: string) => {
-    if (!recommendation || recommendation === 'None') return 'bg-green-100 text-green-700';
-    if (recommendation.toLowerCase().includes('recharge')) return 'bg-red-100 text-red-700';
-    if (recommendation.toLowerCase().includes('monitor')) return 'bg-yellow-100 text-yellow-800';
-    if (recommendation.toLowerCase().includes('maintenance') || recommendation.toLowerCase().includes('check')) return 'bg-blue-100 text-blue-800';
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  if (auth_loading) return <p className="text-center py-10">Checking You have access... please wait</p>;
+  if (auth_loading) return <p className="text-center py-10">Loading your workspace...</p>;
   if (!authenticated) return null;
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 md:px-12">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">👤Search Records</h1>
-        <p className="text-slate-500 text-sm sm:text-base">Search devices or users by name, IMEI, or email</p>
+    <main className="min-h-screen bg-slate-50 px-3 py-6 text-slate-800 sm:px-6 sm:py-9 md:px-10">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <header className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-700">Customer workspace</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Search Records</h1>
+          <p className="text-sm leading-relaxed text-slate-500">Find a customer by email, or a vehicle by name, IMEI or phone.</p>
+        </header>
+        <form className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:gap-3 sm:p-4" onSubmit={event => { event.preventDefault(); handleSearch(); }}>
+          <label htmlFor="record-search" className="sr-only">Customer email or device details</label>
+          <Input id="record-search" type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={event => setQuery(event.target.value)} className="h-11 min-w-0 flex-1 border-slate-200 shadow-none" />
+          <Button type="submit" disabled={loading} className="h-11 rounded-xl bg-blue-700 px-4 text-white hover:bg-blue-800">{loading ? 'Searching...' : 'Search'}</Button>
+        </form>
+        {feedback && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">{feedback}</p>}
 
-        {/* Search Input */}
-        <div className="flex gap-3 justify-center flex-wrap">
-          <Input type="text" placeholder="e.g. GGE 173 XN or user@email.com" value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 max-w-md" />
-          <Button onClick={handleSearch} disabled={loading} className="bg-blue-800 hover:bg-blue-900 text-white">
-            {loading ? 'Searching...' : 'Search'}
-          </Button>
-        </div>
-
-        {/* Feedback */}
-        {feedback && <p className="text-center text-red-600 mt-4">{feedback}</p>}
-
-        {/* User Profile */}
-        {userProfile && (
-          <section className="mt-6">
-            <h2 className="text-xl font-semibold text-blue-900 mb-2 flex items-center gap-2"><FiUser className="text-slate-500" /> User Profile</h2>
-            <Card className="shadow-sm border border-slate-200 hover:shadow-md transition-shadow bg-white rounded-xl">
-              <CardContent className="p-4 space-y-2 text-gray-800">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold flex items-center gap-2"><FiUser /> {userProfile.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${userProfile.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {userProfile.status}
-                  </span>
+        {userProfile && <section aria-label="Customer profile" className="space-y-5">
+          <div className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 sm:h-14 sm:w-14"><FiUser size={24} aria-hidden="true" /></div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">User Profile</h2>
+                  <h3 className="mt-1 break-words text-xl font-semibold leading-snug text-slate-900 [overflow-wrap:anywhere] sm:text-2xl">{userProfile.name}</h3>
+                  <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${userProfile.status === 'Active' ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-800'}`}>{userProfile.status}</span>
                 </div>
-                <p className="flex items-center gap-2 text-gray-700"><FiMail /> {userProfile.email}</p>
-                <p className="flex items-center gap-2 text-gray-700"><FiSmartphone /> {userProfile.phone}</p>
-                <p className="flex items-center gap-2 text-gray-700"><FiCalendar /> Expiry: {expiryLabel(userProfile.expiry)}</p>
-                {userProfile.id && <CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} />}
-                {userProfile.id && <ProfileRenewal key={`renewal-${userProfile.id}`} userId={userProfile.id} onUpdated={(expiry, disabled) => setUserProfile(previous => previous && ({ ...previous, expiry, status: disabled ? 'Disabled' : new Date(expiry).getTime() <= Date.now() ? 'Expired' : 'Active' }))} />}
-              </CardContent>
-            </Card>
-            {userProfile.id && <FinanceHistory key={userProfile.id} userId={userProfile.id} />}
-          </section>
-        )}
-
-        {/* Devices List */}
-        {(userProfile || results.length > 0) && (
-          <details className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm">
-            <summary className="cursor-pointer font-semibold text-blue-900">Devices <span className="ml-2 font-normal text-slate-500">({results.length})</span></summary>
-            <div className="mt-4 space-y-4">
-            {!results.length && <p className="text-slate-500">No devices found for this account.</p>}
-            {results.map((device: Device, idx) => (
-              <Card key={idx} className="shadow-sm border border-slate-200 hover:shadow-md transition-shadow bg-white rounded-xl relative">
-                <CardContent className="p-4 space-y-2 text-gray-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold flex items-center gap-2"><FiCpu /> {device.device_name}</h3>
-                    {device.online_status?.status && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusStyles(device.online_status.status)}`}>{device.online_status.status}</span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-1 text-gray-600 text-sm">
-                    <p className="flex items-center gap-2 text-gray-400"><FiHash /> IMEI: {device.imei}</p>
-                    <p className="flex items-center gap-2 text-gray-400"><FiInfo /> Model: {device.model}</p>
-                    <p className="flex items-center gap-2"><FiSmartphone /> Phone: {device.phone}</p>
-                    <p className="flex items-center gap-2"><FiMapPin /> Address: {device.position_address}</p>
-                    {device.online_status?.recommendation && (
-                      <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getRecommendationStyles(device.online_status.recommendation)}`}>
-                        <FiAlertTriangle className="inline mr-1" />
-                        {device.online_status.recommendation}
-                      </p>
-                    )}
-                  </div>
-
-                  {device.user_profiles && (
-                    <div className="mt-3">
-                      <h4 className="text-sm font-semibold text-blue-900 mb-1">👥 Attached Users</h4>
-                      <div className="space-y-2">
-                        {device.user_profiles.map((user: UserProfile, i: number) => (
-                          <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded-md shadow-sm hover:shadow-md transition-shadow">
-                            <div className="text-gray-800 text-sm">
-                              <p className="font-medium">{user.name}</p>
-                              <p className="text-gray-600">{user.email}</p>
-                              <p className="text-gray-500">Status: <span className="font-semibold">{user.status}</span> | Expiry: {expiryLabel(user.expiry)}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-3">
-                    <Button onClick={() => openAssignModal(device)} className="bg-blue-800 hover:bg-blue-900 text-white">Assign to a User</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+              </div>
+              <dl className="mt-6 grid min-w-0 gap-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiMail aria-hidden="true" />Email</dt><dd className="mt-1.5 break-words font-medium [overflow-wrap:anywhere]">{userProfile.email || 'Not available'}</dd></div>
+                <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiSmartphone aria-hidden="true" />Phone number</dt><dd className="mt-1.5 break-words font-medium [overflow-wrap:anywhere]">{userProfile.phone || 'Not available'}</dd></div>
+                <div className="min-w-0"><dt className="flex items-center gap-2 text-xs font-medium text-slate-500"><FiCalendar aria-hidden="true" />Profile expiry</dt><dd className="mt-1.5 font-medium leading-relaxed">{expiryLabel(userProfile.expiry)}</dd></div>
+              </dl>
             </div>
-          </details>
-        )}
+            {userProfile.id && <div className="px-5 pb-5 sm:px-6"><CustomerProfileSummary key={`summary-${userProfile.id}`} userId={userProfile.id} /></div>}
+          </div>
 
+          <div role="group" aria-label="Profile actions" className="grid gap-3 sm:grid-cols-3">
+            {profileActions.map(({ id, label, Icon }) => <button key={id} id={`profile-action-${id}`} type="button" aria-label={label} aria-controls={`profile-panel-${id}`} aria-expanded={activePanel === id} onClick={() => togglePanel(id)} className={`flex min-h-16 min-w-0 items-center gap-3 rounded-xl border p-4 text-left text-sm font-semibold shadow-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 ${activePanel === id ? 'border-blue-700 bg-blue-700 text-white' : 'border-slate-200 bg-white text-blue-900 hover:border-blue-300 hover:bg-blue-50'}`}>
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /><span className="min-w-0 flex-1">{label}</span><FiChevronDown className={`shrink-0 transition-transform ${activePanel === id ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>)}
+          </div>
+
+          <div id="profile-panel-renewal" hidden={activePanel !== 'renewal'} role="region" aria-labelledby="profile-action-renewal" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">Extend profile expiry</h2>
+            {visitedPanels.includes('renewal') && userProfile.id && <ProfileRenewal key={`renewal-${userProfile.id}`} userId={userProfile.id} onUpdated={updateProfileExpiry} />}
+          </div>
+          <div id="profile-panel-finance" hidden={activePanel !== 'finance'} role="region" aria-labelledby="profile-action-finance" className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold text-slate-900">Finance history</h2>
+            {visitedPanels.includes('finance') && userProfile.id && <FinanceHistory key={`finance-${userProfile.id}`} userId={userProfile.id} />}
+          </div>
+        </section>}
+
+        {(userProfile || results.length > 0) && <section id="profile-panel-devices" hidden={!!userProfile && activePanel !== 'devices'} aria-label="Devices" className="min-w-0 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold text-slate-900">Devices <span className="ml-1 text-sm font-normal text-slate-500">({results.length})</span></h2><p className="text-xs text-slate-500">Status, location and linked accounts</p></div>
+          {!results.length && <p className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">No devices found for this account.</p>}
+          <div className="grid min-w-0 items-start gap-4 lg:grid-cols-2">
+            {results.map(device => <SearchDeviceCard key={device.device_id} device={device} onAssign={openAssignModal} />)}
+          </div>
+        </section>}
       </div>
 
-      {/* Assign Modal */}
-      {isModalOpen && selectedDevice && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white p-6 rounded-xl shadow-2xl w-80 sm:w-96">
-            <h2 className="text-lg sm:text-xl font-bold mb-3 text-blue-900">Assign Device: {selectedDevice.device_name}</h2>
-            <Input type="email" placeholder="Enter user email" className="w-full mb-4 border-slate-200 focus:ring-blue-700" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <div className="flex justify-end gap-3">
-              <Button onClick={() => setIsModalOpen(false)} variant="secondary">Cancel</Button>
-              <Button onClick={handleAssign} disabled={assignLoading} className="bg-blue-800 hover:bg-blue-900 text-white">
-                {assignLoading ? 'Assigning...' : 'Assign'}
-              </Button>
-            </div>
+      {isModalOpen && selectedDevice && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="assign-device-title" className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6">
+          <h2 id="assign-device-title" className="text-lg font-semibold text-blue-950">Assign device</h2>
+          <p className="mt-2 break-words text-sm text-slate-600 [overflow-wrap:anywhere]">{selectedDevice.device_name}</p>
+          <label htmlFor="assign-email" className="mb-2 mt-5 block text-sm font-medium">User email</label>
+          <Input id="assign-email" type="email" placeholder="Enter user email" className="h-11 w-full min-w-0 border-slate-200" value={email} onChange={event => setEmail(event.target.value)} />
+          <div className="mt-5 flex flex-wrap justify-end gap-3">
+            <Button onClick={() => setIsModalOpen(false)} variant="secondary">Cancel</Button>
+            <Button onClick={handleAssign} disabled={assignLoading} className="bg-blue-700 text-white hover:bg-blue-800">{assignLoading ? 'Assigning...' : 'Assign'}</Button>
           </div>
         </div>
-      )}
+      </div>}
     </main>
   );
 }
