@@ -1,0 +1,18 @@
+{
+  "/api/auth/check-session/route": "app/api/auth/check-session/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/device/add_device/route": "app/api/device/add_device/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/device/link_device/route": "app/api/device/link_device/route.js",
+  "/api/search/route": "app/api/search/route.js",
+  "/api/user/onboarduser/route": "app/api/user/onboarduser/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/finance/[...path]/route": "app/api/finance/[...path]/route.js",
+  "/add-device/page": "app/add-device/page.js",
+  "/finance/page": "app/finance/page.js",
+  "/onboard_user/page": "app/onboard_user/page.js",
+  "/search/page": "app/search/page.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js"
+}

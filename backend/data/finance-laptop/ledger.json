@@ -1,0 +1,1795 @@
+{
+  "version": 1,
+  "sequence": 5,
+  "profiles": {
+    "traccar-1230": {
+      "name": "AdminTrials",
+      "email": "test@roie.com.ng",
+      "phone": "07037870700",
+      "address": {
+        "line1": "407-10830 114St SW",
+        "line2": "",
+        "city": "Edmonton",
+        "state": "AB",
+        "postal_code": "T5H 3K2",
+        "country": "Nigeria"
+      },
+      "formatted_address": "407-10830 114St SW\nEdmonton, AB, T5H 3K2\nNigeria",
+      "profile_id": "traccar-1230",
+      "traccar_user_id": 1230
+    },
+    "traccar-1114": {
+      "name": "Cryslad Nigeria",
+      "email": "cryslad39@gmail.com",
+      "phone": "7427780700",
+      "address": {
+        "line1": "20 Daddy Monsor Street, Isho",
+        "line2": "",
+        "city": "Alakuko",
+        "state": "State",
+        "postal_code": "10024",
+        "country": "Nigeria"
+      },
+      "formatted_address": "20 Daddy Monsor Street, Isho\nAlakuko, State, 10024\nNigeria",
+      "profile_id": "traccar-1114",
+      "traccar_user_id": 1114
+    },
+    "traccar-1193": {
+      "name": "A-Test 1",
+      "email": "roietechnologies@gmail.com",
+      "phone": "07037870700",
+      "address": {
+        "line1": "217 7 Ave SW",
+        "line2": "",
+        "city": "Calgary",
+        "state": "AB",
+        "postal_code": "T2P 0X1",
+        "country": "Nigeria"
+      },
+      "formatted_address": "217 7 Ave SW\nCalgary, AB, T2P 0X1\nNigeria",
+      "profile_id": "traccar-1193",
+      "traccar_user_id": 1193
+    }
+  },
+  "invoices": {
+    "d0e5b4bd4f6b47e39370d8f8a8fcd27e": {
+      "id": "d0e5b4bd4f6b47e39370d8f8a8fcd27e",
+      "request_key": "d3148819-ca2c-4f00-8293-5447d5a1af28",
+      "number": "ROIE-2026-000001",
+      "request_fingerprint": "834d7d79557c793671a752a409f6ee8d5fe855e0b3ced6d12cb901edbd3ef3c5",
+      "created_at": "2026-11-13T19:31:00.789811+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 4,
+      "payments": [
+        {
+          "id": "e2c17ddbdd084c95a115a7f20e7534b1",
+          "request_key": "1f2f7c50-69a7-413f-97c6-d7502fd90994",
+          "amount_minor": 8000000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-13",
+          "reference": "23899932838",
+          "recorded_at": "2026-11-13T19:43:59.146640+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "id": "9a9a3863155749c19efa9a61c4448c8f",
+          "request_key": "27deb82e-3b5f-4003-8367-ad9bf643c4ca",
+          "amount_minor": 23000000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-13",
+          "reference": "18773146646",
+          "recorded_at": "2026-11-13T19:46:09.766346+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-11-13T19:31:00.789886+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-13T19:31:40.308971+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-13T19:43:59.146659+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 8000000
+        },
+        {
+          "at": "2026-11-13T19:46:09.766381+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 23000000
+        }
+      ],
+      "customer": {
+        "name": "AdminTrials",
+        "email": "test@roie.com.ng",
+        "phone": "07037870700",
+        "address": {
+          "line1": "407-10830 114St SW",
+          "line2": "",
+          "city": "Edmonton",
+          "state": "AB",
+          "postal_code": "T5H 3K2",
+          "country": "Nigeria"
+        },
+        "formatted_address": "407-10830 114St SW\nEdmonton, AB, T5H 3K2\nNigeria",
+        "profile_id": "traccar-1230",
+        "traccar_user_id": 1230
+      },
+      "entries": [
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "5510803880b24b58965e86768a459dda",
+          "device": null,
+          "vehicle_label": "Corolla",
+          "activity": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "ed2ac94bd54247c2a1a2c09e80dd0971",
+          "device": null,
+          "vehicle_label": "Trucks",
+          "activity": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 1500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            }
+          ],
+          "id": "fa585aab71124230991e875030c8712c",
+          "device": {
+            "id": 172,
+            "name": "lux-voyage-test-vehicle",
+            "imei": "358657105234491"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 1500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            }
+          ],
+          "id": "2d2d6cd25eb64a178ae535d5da63c05b",
+          "device": {
+            "id": 171,
+            "name": "lux-voyage-test-vehicle-2-offline",
+            "imei": "358657105233824"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "maintenance",
+          "total_minor": 2000000,
+          "breakdown": [
+            {
+              "label": "Service fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Logistics",
+              "amount_minor": 800000
+            }
+          ],
+          "id": "3cf06410bee74d53bb842f6508bc3c62",
+          "device": {
+            "id": 172,
+            "name": "lux-voyage-test-vehicle",
+            "imei": "358657105234491"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "maintenance",
+          "total_minor": 2000000,
+          "breakdown": [
+            {
+              "label": "Service fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Logistics",
+              "amount_minor": 800000
+            }
+          ],
+          "id": "004715fb6cb244af9a872ca30da9e492",
+          "device": {
+            "id": 171,
+            "name": "lux-voyage-test-vehicle-2-offline",
+            "imei": "358657105233824"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "link_status": "linked"
+        }
+      ],
+      "total_minor": 31000000,
+      "due_date": "2026-11-06",
+      "notes": "Please make payment to GTBANK 0421439134 Roie Technologies Ltd",
+      "updated_at": "2026-11-13T19:46:09.766391+00:00",
+      "issued_at": "2026-11-13T19:31:40.308951+00:00"
+    },
+    "f4de329d74e140948b6c0db1fd0ababc": {
+      "id": "f4de329d74e140948b6c0db1fd0ababc",
+      "request_key": "3cef6abf-c030-4fe9-a00c-b54e6e732192",
+      "number": "ROIE-2026-000002",
+      "request_fingerprint": "031bd394f16ab372115f15583623b053165422296df9e253add489a785080d7d",
+      "created_at": "2026-11-13T23:29:29.816783+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 2,
+      "payments": [],
+      "events": [
+        {
+          "at": "2026-11-13T23:29:29.816864+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-13T23:29:33.709251+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        }
+      ],
+      "customer": {
+        "name": "Cryslad Nigeria",
+        "email": "cryslad39@gmail.com",
+        "phone": "7427780700",
+        "address": {
+          "line1": "20 Daddy Monsor Street, Isho",
+          "line2": "",
+          "city": "Alakuko",
+          "state": "State",
+          "postal_code": "10024",
+          "country": "Nigeria"
+        },
+        "formatted_address": "20 Daddy Monsor Street, Isho\nAlakuko, State, 10024\nNigeria",
+        "profile_id": "traccar-1114",
+        "traccar_user_id": 1114
+      },
+      "entries": [
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "624292f4eb7b43cab59ee937b625c6ae",
+          "device": {
+            "id": 106,
+            "name": "FKJ 110 XB",
+            "imei": "358657104065250"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "f60b7f67e29c4a36be7e21e720f089c0",
+          "device": {
+            "id": 153,
+            "name": "FST 195 XM",
+            "imei": "358657105235696"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "6107d10b2b3846f2aac869931369f175",
+          "device": {
+            "id": 97,
+            "name": "FST 197 XM",
+            "imei": "358657104082065"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "8a3a53e018a24709bdab3ed0300ca03a",
+          "device": {
+            "id": 111,
+            "name": "FST 201 XM ",
+            "imei": "358657104080614"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "17afc69fc0ad4d7d9f7fe26d3a5de933",
+          "device": {
+            "id": 110,
+            "name": "FST 204 XM",
+            "imei": "358657104087890"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "49526b30cd414f1db59a8920c5df3cd0",
+          "device": {
+            "id": 81,
+            "name": "FST 207 XM",
+            "imei": "358657104088328"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "a81e9b506a364ff5842f420ad266c6e8",
+          "device": {
+            "id": 77,
+            "name": "GGE 173 XN",
+            "imei": "358657104083121"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "7c8a9d8cfff54456b1c8fd5798f0b432",
+          "device": {
+            "id": 188,
+            "name": "GGE 175 XN",
+            "imei": "358657105240373"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "ffdd3167c8ec4dca94973b215c0029cd",
+          "device": {
+            "id": 101,
+            "name": "GGE 177 XN",
+            "imei": "358657104063677"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "ed6b4056446e48bd9071f71143ec5f85",
+          "device": {
+            "id": 164,
+            "name": "GGE 179 XN",
+            "imei": "358657104089219"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "b73a72b20bbd44c4b4d466bc7b01f7c1",
+          "device": {
+            "id": 78,
+            "name": "GGE 191 XN ",
+            "imei": "358657104082180"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "8298b9534f6941739c6d28b0d85c9521",
+          "device": {
+            "id": 154,
+            "name": "GGE 200 XN",
+            "imei": "358657105234905"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "9bd7a8dfaa0543ada7724e9bf8569f9c",
+          "device": {
+            "id": 211,
+            "name": "GL 515 LND-School Bus",
+            "imei": "358657105460724"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "ec27964611214fc7bb4cb82ce8a2ab34",
+          "device": {
+            "id": 100,
+            "name": "JJJ 851 XB ",
+            "imei": "358657104085134"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "66609e0030fb46f786e08b74dda89f56",
+          "device": {
+            "id": 98,
+            "name": "KSF 746 XG ",
+            "imei": "358657105235498"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "01ff897a3fd849e2b67bea8dc1f25086",
+          "device": {
+            "id": 99,
+            "name": "LND 268 XJ",
+            "imei": "358657104064055"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "945c8d8f322f4412839ff2fe2520f612",
+          "device": {
+            "id": 120,
+            "name": "LSD 962 XL",
+            "imei": "358657104065458"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "44c3ec3c7bc44debab160891ec9913f7",
+          "device": {
+            "id": 102,
+            "name": "LSD 964 XL",
+            "imei": "358657104061036"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "36efed971bb0429589eaa6d7b6dd5113",
+          "device": {
+            "id": 104,
+            "name": "LSD 965 XL",
+            "imei": "358657104063503"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "62d154f05d6c4ce2b743d9746f0edc47",
+          "device": {
+            "id": 155,
+            "name": "LSD 971 XL",
+            "imei": "358657105236215"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "60aaa5d3077a480ca6aea31f04fb1a45",
+          "device": {
+            "id": 108,
+            "name": "LSD 976 XL ",
+            "imei": "358657104082230"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "67ce0510e2f441f0974a4c9b92082151",
+          "device": {
+            "id": 107,
+            "name": "LSD 977 XL",
+            "imei": "358657105236751"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "860eab630c6f41d5b5535b5cad987a5d",
+          "device": {
+            "id": 109,
+            "name": "LSD 983 XL ",
+            "imei": "358657106154086"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "01996d10247f49209c0ec78f3e76bcf3",
+          "device": {
+            "id": 80,
+            "name": "LSD 984 XL ",
+            "imei": "358657104087924"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "e0fbaea67e964da88513c15a5799f915",
+          "device": {
+            "id": 76,
+            "name": "LSD 985 XL",
+            "imei": "358657104083923"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "836abf1fb59a416c88b3220906a09c2b",
+          "device": {
+            "id": 119,
+            "name": "LSD 986 XL",
+            "imei": "358657104064287"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "c690a5a3627e4865b5967cd57d51804d",
+          "device": {
+            "id": 96,
+            "name": "LSD 987 XL",
+            "imei": "358657104063941"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "ef041a0e3a654798a11480a48c620855",
+          "device": {
+            "id": 89,
+            "name": "LSD 997 XL",
+            "imei": "358657104084921"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "8baf9c8697ae42fd8db1d0a0a327f52e",
+          "device": {
+            "id": 169,
+            "name": "PM 68 KJA-School Bus",
+            "imei": "358657105460823"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "a3bd18ae4fb842c6b55503cc4590815f",
+          "device": {
+            "id": 118,
+            "name": "SMK 862 XM",
+            "imei": "358657104063974"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "f9c60032130948519f5d85a6c039b1b2",
+          "device": {
+            "id": 143,
+            "name": "SMK 865 XM",
+            "imei": "358657104084624"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "ec6af4b039764ecaa0855d272ea1ef1b",
+          "device": {
+            "id": 105,
+            "name": "SMK 866 XM",
+            "imei": "358657104081778"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 2500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 2000000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 500000
+            }
+          ],
+          "id": "27bad19e96134265b54fe987ae8d962f",
+          "device": {
+            "id": 258,
+            "name": "SMK 868 XM",
+            "imei": "358657106134807"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        }
+      ],
+      "subtotal_minor": 82500000,
+      "discount_minor": 0,
+      "discount": {
+        "type": "none",
+        "value": "0"
+      },
+      "total_minor": 82500000,
+      "due_date": "2026-11-30",
+      "notes": "Kindly Make Payment to GTbank 0421439134 Roie Technologies Ltd",
+      "updated_at": "2026-11-13T23:29:33.709305+00:00",
+      "issued_at": "2026-11-13T23:29:33.709224+00:00"
+    },
+    "80611b4e1ac14bda93bb6f97e47d8be4": {
+      "id": "80611b4e1ac14bda93bb6f97e47d8be4",
+      "request_key": "20231a98-cf23-449e-b770-a42816c6cff5",
+      "number": "ROIE-2026-000003",
+      "request_fingerprint": "4a5398dc5ab664de04bdda9c43ae38b928b30104c89f5e1a86d1532df3f5c4cb",
+      "created_at": "2026-11-14T01:33:24.281981+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 3,
+      "payments": [
+        {
+          "id": "104d64190d84418285fd5049e27f9f8e",
+          "request_key": "f74663f6-af3e-434b-9d2f-3298bf797825",
+          "amount_minor": 4050000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-12",
+          "reference": "17903288492",
+          "recorded_at": "2026-11-14T01:35:49.597856+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "7543760a38309b970d9717913b85172e7a9a433d50d69d661bd31e25fd64c859",
+            "name": "Roie e-Stamp.png",
+            "content_type": "image/png",
+            "size": 173043
+          },
+          "receipt_number": "ROIE-2026-000003-R001"
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-11-14T01:33:24.282050+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-14T01:33:37.432830+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-14T01:35:49.597878+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 4050000
+        }
+      ],
+      "customer": {
+        "name": "AdminTrials",
+        "email": "test@roie.com.ng",
+        "phone": "07037870700",
+        "address": {
+          "line1": "407-10830 114St SW",
+          "line2": "",
+          "city": "Edmonton",
+          "state": "AB",
+          "postal_code": "T5H 3K2",
+          "country": "Nigeria"
+        },
+        "formatted_address": "407-10830 114St SW\nEdmonton, AB, T5H 3K2\nNigeria",
+        "profile_id": "traccar-1230",
+        "traccar_user_id": 1230
+      },
+      "entries": [
+        {
+          "category": "maintenance",
+          "total_minor": 1000000,
+          "breakdown": [
+            {
+              "label": "Service fee",
+              "amount_minor": 600000
+            },
+            {
+              "label": "Logistics",
+              "amount_minor": 400000
+            }
+          ],
+          "id": "b9d4c95331ed4f1ebf1b629aa2164984",
+          "device": {
+            "id": 172,
+            "name": "lux-voyage-test-vehicle",
+            "imei": "358657105234491"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "special",
+          "total_minor": 3500000,
+          "breakdown": [
+            {
+              "label": "NOC - Service",
+              "description": "November 2026",
+              "amount_minor": 3500000
+            }
+          ],
+          "id": "ff8f0affa7e4478bad27ab254d268d75",
+          "device": null,
+          "vehicle_label": "NOC - Service",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "activity_only"
+        }
+      ],
+      "subtotal_minor": 4500000,
+      "discount_minor": 450000,
+      "discount": {
+        "type": "percent",
+        "value": "10"
+      },
+      "total_minor": 4050000,
+      "due_date": "2026-11-17",
+      "notes": "This is Recurring issue discount on Maintenance",
+      "updated_at": "2026-11-14T01:35:49.597885+00:00",
+      "issued_at": "2026-11-14T01:33:37.432801+00:00"
+    },
+    "67de1edc4c104b7ea4810d795feaba0b": {
+      "id": "67de1edc4c104b7ea4810d795feaba0b",
+      "request_key": "1e1ba906-3411-4831-81ff-1d3d8e44ebab",
+      "number": "ROIE-2026-000004",
+      "request_fingerprint": "5a35829b2f3888cb36a35b96d85acbb5ef2f7a3adb7a30b11c0f2eaee6ee544b",
+      "created_at": "2026-11-14T05:33:52.003844+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 2,
+      "payments": [],
+      "events": [
+        {
+          "at": "2026-11-14T05:33:52.003939+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-14T05:34:04.561178+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        }
+      ],
+      "customer": {
+        "name": "AdminTrials",
+        "email": "test@roie.com.ng",
+        "phone": "07037870700",
+        "address": {
+          "line1": "407-10830 114St SW",
+          "line2": "",
+          "city": "Edmonton",
+          "state": "AB",
+          "postal_code": "T5H 3K2",
+          "country": "Nigeria"
+        },
+        "formatted_address": "407-10830 114St SW\nEdmonton, AB, T5H 3K2\nNigeria",
+        "profile_id": "traccar-1230",
+        "traccar_user_id": 1230
+      },
+      "entries": [
+        {
+          "category": "renewal",
+          "total_minor": 1500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            }
+          ],
+          "id": "3d335d1553e440ed8ffc1548a651e9a3",
+          "device": {
+            "id": 172,
+            "name": "lux-voyage-test-vehicle",
+            "imei": "358657105234491"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        }
+      ],
+      "subtotal_minor": 1500000,
+      "discount_minor": 0,
+      "discount": {
+        "type": "none",
+        "value": "0"
+      },
+      "total_minor": 1500000,
+      "due_date": "",
+      "notes": "",
+      "updated_at": "2026-11-14T05:34:04.561188+00:00",
+      "issued_at": "2026-11-14T05:34:04.561148+00:00"
+    },
+    "0a0b463eaaf84c04b1ddc5025eb55e12": {
+      "id": "0a0b463eaaf84c04b1ddc5025eb55e12",
+      "request_key": "b7ed48d0-d790-436f-837d-fda4e36825c8",
+      "number": "ROIE-2026-000005",
+      "request_fingerprint": "b2d2fc1088fbf7fdeb0f71db1b4b8122d9d473e480f0d7cf93050e8f1da967f9",
+      "created_at": "2026-11-14T05:42:56.947756+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 5,
+      "payments": [
+        {
+          "id": "c277afdb4be94436a1bdb38a4bab389d",
+          "request_key": "9d471046-cd51-4c12-a73f-9bf65eec07f5",
+          "amount_minor": 50000000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-13",
+          "reference": "78y87329993",
+          "recorded_at": "2026-11-14T05:47:48.459715+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "8ae883faa8ff38bd1a34997062c1b4bf4dbcf1eaca39d35c487afae6e1564f8d",
+            "name": "RoieTracker.png",
+            "content_type": "image/png",
+            "size": 80626
+          },
+          "receipt_number": "ROIE-2026-000005-R001"
+        },
+        {
+          "id": "93b5402841324cafbf89096cebcf7a51",
+          "request_key": "46075930-d0db-410a-8095-82940519ea5a",
+          "amount_minor": 66500000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-13",
+          "reference": "8978298323232",
+          "recorded_at": "2026-11-14T05:48:56.935329+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "959630d66f131a09f84cc075e9868bbdb230ed548c48be50dc3228859e95199d",
+            "name": "Untitled design (2).jpg",
+            "content_type": "image/png",
+            "size": 336524
+          },
+          "receipt_number": "ROIE-2026-000005-R002"
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-11-14T05:42:56.947876+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-14T05:44:06.721100+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-14T05:46:40.040285+00:00",
+          "action": "device_linked",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "entry_id": "da24b21d3c7f459dbfb83d11ebfe89d3",
+          "device_id": 136
+        },
+        {
+          "at": "2026-11-14T05:47:48.459734+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 50000000
+        },
+        {
+          "at": "2026-11-14T05:48:56.935342+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 66500000
+        }
+      ],
+      "customer": {
+        "name": "A-Test 1",
+        "email": "roietechnologies@gmail.com",
+        "phone": "07037870700",
+        "address": {
+          "line1": "217 7 Ave SW",
+          "line2": "",
+          "city": "Calgary",
+          "state": "AB",
+          "postal_code": "T2P 0X1",
+          "country": "Nigeria"
+        },
+        "formatted_address": "217 7 Ave SW\nCalgary, AB, T2P 0X1\nNigeria",
+        "profile_id": "traccar-1193",
+        "traccar_user_id": 1193
+      },
+      "entries": [
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "da24b21d3c7f459dbfb83d11ebfe89d3",
+          "device": {
+            "id": 136,
+            "name": "AAA 83 QT",
+            "imei": "358657106529469"
+          },
+          "vehicle_label": "Installation 1 - vehicle 1",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "60bc97437d2b41f6bc00743ef5f21470",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 2",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "4e8aa16879a34794824e9d8a347a813d",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 3",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "81aa4bd19548456eaabe195bbe2db02a",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 4",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "94da859dc44047e2881e03d6ab788437",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 5",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "8cd6fdf3deb445f5a9dd11c5c30af3e5",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 6",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "4b3efc3afddf40f498abad362a7bbbbc",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 7",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "d96f83a5d255430787e2d17307e1a6f1",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 8",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "fa02772d55e84e278ac7dc197a1c647b",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 9",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "installation",
+          "total_minor": 12000000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            },
+            {
+              "label": "Installation",
+              "amount_minor": 1651685
+            },
+            {
+              "label": "Device",
+              "amount_minor": 8848315
+            }
+          ],
+          "id": "f10e9dfc94af4a0bb2308aec1949ca79",
+          "device": null,
+          "vehicle_label": "Installation 1 - vehicle 10",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "pending_installation"
+        },
+        {
+          "category": "renewal",
+          "total_minor": 1500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            }
+          ],
+          "id": "e5dd5591ecdb4a70a6c0a59f60510439",
+          "device": {
+            "id": 77,
+            "name": "GGE 173 XN",
+            "imei": "358657104083121"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        }
+      ],
+      "subtotal_minor": 121500000,
+      "discount_minor": 5000000,
+      "discount": {
+        "type": "amount",
+        "value": "50000"
+      },
+      "total_minor": 116500000,
+      "due_date": "2026-11-17",
+      "notes": "",
+      "updated_at": "2026-11-14T05:48:56.935346+00:00",
+      "issued_at": "2026-11-14T05:44:06.721080+00:00"
+    }
+  }
+}

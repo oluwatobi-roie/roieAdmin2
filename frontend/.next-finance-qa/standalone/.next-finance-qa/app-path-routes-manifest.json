@@ -1,0 +1,18 @@
+{
+  "/api/auth/check-session/route": "/api/auth/check-session",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/device/add_device/route": "/api/device/add_device",
+  "/api/auth/logout/route": "/api/auth/logout",
+  "/api/device/link_device/route": "/api/device/link_device",
+  "/api/search/route": "/api/search",
+  "/api/user/onboarduser/route": "/api/user/onboarduser",
+  "/favicon.ico/route": "/favicon.ico",
+  "/api/finance/[...path]/route": "/api/finance/[...path]",
+  "/add-device/page": "/add-device",
+  "/finance/page": "/finance",
+  "/onboard_user/page": "/onboard_user",
+  "/search/page": "/search",
+  "/page": "/",
+  "/login/page": "/login"
+}
