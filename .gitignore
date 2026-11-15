@@ -59,7 +59,7 @@ Tools/*
 # Local invoice ledger and test environment
 backend/data/
 .finance-test-venv/
-frontend/.next/
+frontend/.next/*
 
 # Isolated build for finance browser checks
 frontend/.next-finance-qa/
@@ -69,3 +69,12 @@ frontend/.next-finance-qa/
 
 # Server-only deployment releases and state
 .deploy/
+
+# Generated profile-renewal browser checks
+/output/renewal-qa/
+
+# Local renewal build without replacing existing build output
+frontend/.next-renewal-check/
+
+# Machine-specific local environment settings
+.env.local

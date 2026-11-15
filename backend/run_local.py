@@ -81,7 +81,7 @@ def main():
     if args.check:
         return 0
     print(f"Test invoices: {os.environ['FINANCE_DATA_DIR']}")
-    print("Traccar API calls still use your configured server; phone updates affect that server.")
+    print("Traccar API calls still use your configured server; phone updates and confirmed profile expiry extensions affect that server.")
     from app import app
     app.run(host="127.0.0.1", port=args.port, debug=False, use_reloader=False)
     return 0

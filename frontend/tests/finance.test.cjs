@@ -81,3 +81,12 @@ test('identical special services remain separate editable items', () => {
   assert.equal(tasks.length, 2);
   assert.equal(tasks.reduce((sum, task) => sum + finance.taskQuantity(task), 0), 2);
 });
+
+test('expiry dates preserve UTC across SQL timestamps, account API offsets and invalid data', () => {
+  const expected = finance.expiryLabel('2020-02-29T12:34:56Z');
+  assert.equal(finance.expiryLabel('2020-02-29T12:34:56'), expected);
+  assert.equal(finance.expiryLabel('2020-02-29T13:34:56+01:00'), expected);
+  assert.match(expected, /29 Feb 2020.*12:34 UTC/);
+  assert.equal(finance.expiryLabel(null), 'No expiry');
+  assert.equal(finance.expiryLabel('not-a-date'), 'Invalid expiry date');
+});

@@ -58,7 +58,7 @@ Device ownership is checked when saving, finalizing and linking after installati
 
 ## Storage and deployment
 
-No SQL tables or columns are added. Finance reads the existing customer/device tables and stores its own records in a locked, atomic JSON ledger. Its sole account write is the explicit phone PUT, based on a freshly retrieved user object while preserving other fields. A changed phone since loading is detected; the account API does not support atomic phone-only updates, so avoid simultaneous edits of that account while syncing.
+No SQL tables or columns are added. Finance reads the existing customer/device tables and stores its own records in a locked, atomic JSON ledger. Account writes are the explicit phone sync and the paid-invoice-backed profile expiry extension. Both use the account API with a freshly retrieved user object while preserving other fields. A changed phone since loading is detected; the account API does not support atomic phone-only updates, so avoid simultaneous edits of that account while syncing.
 
 `FINANCE_DATA_DIR` contains:
 
@@ -105,3 +105,36 @@ python tests/finance_browser_smoke.py
 ```
 
 The browser test uses loopback ports 5057/3107, temporary records, mocked sessions and the isolated build. It verifies the guided flow, mobile layout, 68-vehicle invoices, proof uploads and receipts, including PDF text checks and rendered page images. PDFs are under ignored `output/pdf`; QA screenshots are under ignored `MyComputer/finance-qa`. Test servers stop on completion. The browser test deliberately disables `crypto.randomUUID` to exercise the secure `crypto.getRandomValues` fallback used on HTTP/LAN contexts.
+
+
+## Profile expiry renewal
+
+From **Search Records > User Profile > Extend profile expiry**, choose a fully paid invoice, select the vehicles due for renewal and confirm the displayed one-year extension. Only positive Renewal entries belonging to that customer and still linked to their account are selectable. Installation and Maintenance entries cannot authorize an extension. Draft, cancelled, unpaid, partly paid and zero-payment invoices cannot be used.
+
+The year always starts at the **existing expiry**, including expired accounts. February 29 becomes February 28 in the following year; the UTC time is preserved. An account that expired more than a year ago can remain expired after this action, and the preview explicitly warns staff. Unlimited profiles cannot be extended. Disabled accounts remain disabled.
+
+Expiry applies to the whole account, not individual devices. Staff select the vehicles due for renewal from the invoice; the application does not infer individual vehicle expiry dates. An invoice can authorize only **one** account extension, even if only some of its renewal vehicles are selected. Other paid Renewal invoices can authorize later extensions.
+
+The JSON invoice stores the selected vehicle IDs, names, IMEIs and invoice entry IDs, invoice number, staff identity, old/new expiry, request time and verification time. The profile's renewal history links back to the invoice. The invoice detail screen displays the same audit record; this internal audit panel is excluded from the customer PDF. There are no new SQL tables, columns or migrations.
+
+A pending intent is written before updating the account API. A per-account OS lock prevents concurrent extensions; a pending operation also blocks other invoices for that account. If the connection fails, use **Verify / retry extension** in renewal history. A retry reads the live expiry and uses the original saved target, so it cannot add another year. A changed expiry outside either recorded date requires administrator reconciliation: inspect the live account and the invoice audit record before any correction, then verify the original operation. Never delete pending audit records to bypass the check.
+
+The account API has no atomic expiry-only update, so avoid simultaneous edits to the same account outside this flow. Remote access uses the signed-in staff session; staff must also have account-update permission in RoieTrackers. See the upstream [user model](https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/model/User.java) and [account update endpoint](https://github.com/traccar/traccar/blob/master/src/main/java/org/traccar/api/BaseObjectResource.java).
+
+Local verification (temporary SQLite/JSON and mocked account API; no production writes):
+
+```powershell
+# From the project root, with the Python environment activated:
+$env:PYTHONPATH = "$PWD\backend"
+python -m unittest discover -s backend/tests -p 'test_*.py'
+
+# Build the isolated frontend, then return to the root:
+cd frontend
+$env:NEXT_BUILD_DIR = '.next-finance-qa'
+npm ci
+npm run build
+cd ..
+python backend/tests/profile_renewal_browser_smoke.py
+```
+
+The browser check needs Chrome and the Python Playwright package. Screenshots are written to `output/renewal-qa/` (ignored by Git). Testing the normal app against production account API credentials **does** update the real expiry when Confirm is clicked, even when the UI runs on a laptop; use this isolated test for a safe rehearsal.

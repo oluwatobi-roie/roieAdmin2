@@ -60,7 +60,7 @@
       "created_at": "2026-11-13T19:31:00.789811+00:00",
       "status": "issued",
       "currency": "NGN",
-      "revision": 4,
+      "revision": 6,
       "payments": [
         {
           "id": "e2c17ddbdd084c95a115a7f20e7534b1",
@@ -123,6 +123,36 @@
             "name": "Administrator"
           },
           "amount_minor": 23000000
+        },
+        {
+          "at": "2026-11-15T02:03:42.163962+00:00",
+          "action": "profile_extension_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "c7b04b7a-4746-4d7a-b5a1-48b69335ed94",
+          "device_ids": [
+            171,
+            172
+          ],
+          "previous_expiration_time": "2026-11-20T00:00:00.000Z",
+          "expiration_time": "2027-11-20T00:00:00.000Z"
+        },
+        {
+          "at": "2026-11-15T02:03:43.346255+00:00",
+          "action": "profile_extended",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "c7b04b7a-4746-4d7a-b5a1-48b69335ed94",
+          "device_ids": [
+            171,
+            172
+          ],
+          "previous_expiration_time": "2026-11-20T00:00:00.000Z",
+          "expiration_time": "2027-11-20T00:00:00.000Z"
         }
       ],
       "customer": {
@@ -292,8 +322,51 @@
       "total_minor": 31000000,
       "due_date": "2026-11-06",
       "notes": "Please make payment to GTBANK 0421439134 Roie Technologies Ltd",
-      "updated_at": "2026-11-13T19:46:09.766391+00:00",
-      "issued_at": "2026-11-13T19:31:40.308951+00:00"
+      "updated_at": "2026-11-15T02:03:43.346262+00:00",
+      "issued_at": "2026-11-13T19:31:40.308951+00:00",
+      "renewal_extension": {
+        "id": "c7b04b7a-4746-4d7a-b5a1-48b69335ed94",
+        "request_key": "0602a42c-c646-47be-a922-fe045d92317b",
+        "state": "applied",
+        "invoice_id": "d0e5b4bd4f6b47e39370d8f8a8fcd27e",
+        "invoice_number": "ROIE-2026-000001",
+        "user_id": 1230,
+        "device_ids": [
+          171,
+          172
+        ],
+        "devices": [
+          {
+            "id": 171,
+            "name": "lux-voyage-test-vehicle-2-offline",
+            "imei": "358657105233824",
+            "entry_ids": [
+              "2d2d6cd25eb64a178ae535d5da63c05b"
+            ]
+          },
+          {
+            "id": 172,
+            "name": "lux-voyage-test-vehicle",
+            "imei": "358657105234491",
+            "entry_ids": [
+              "fa585aab71124230991e875030c8712c"
+            ]
+          }
+        ],
+        "previous_expiration_time": "2026-11-20T00:00:00.000Z",
+        "expiration_time": "2027-11-20T00:00:00.000Z",
+        "requested_at": "2026-11-15T02:03:42.163920+00:00",
+        "actor": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "applied_at": "2026-11-15T02:03:43.346194+00:00",
+        "verified_by": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "disabled": false
+      }
     },
     "f4de329d74e140948b6c0db1fd0ababc": {
       "id": "f4de329d74e140948b6c0db1fd0ababc",
