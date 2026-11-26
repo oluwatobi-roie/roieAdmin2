@@ -22,6 +22,7 @@ from services.profile_renewal import account_lock, canonical_expiry, eligible_de
 from services.payment_proof import prepare_proof, save_proof
 from services.finance_pdf import document_pdf
 from services.finance_mail import mailbox, smtp_settings, send_document
+from services.staff_auth import StaffAuthError, verify_staff
 
 finance_bp = Blueprint("finance", __name__)
 
@@ -43,23 +44,12 @@ def require_staff():
         request.max_content_length = 7 * 1024 * 1024 if request.path.endswith("/payments") else 250000
         if request.content_length and request.content_length > request.max_content_length:
             raise FinanceError("Request is too large.", 413)
-    token = request.cookies.get("session_token")
-    if not token:
-        raise FinanceError("Sign in to access finance.", 401)
     try:
-        response = requests.get(TRACCAR_API_URL + "session",
-            cookies={"JSESSIONID": token}, timeout=15)
-        if response.status_code != 200:
-            raise FinanceError("Session expired. Sign in again.", 401)
-        user = response.json()
-        if user.get("id") not in admin_user_list or user.get("disabled"):
-            raise FinanceError("Staff access is required.", 403)
-        g.finance_can_cancel = user.get("id") == 1 and user.get("administrator") is True
-        g.finance_actor = {"id": user["id"], "name": user.get("name", "Staff")}
-    except (requests.RequestException, ValueError) as exc:
-        if isinstance(exc, FinanceError):
-            raise
-        raise FinanceError("Unable to verify your session with RoieTrackers.", 503) from exc
+        user = verify_staff()
+        g.finance_can_cancel = user["id"] == 1 and user["administrator"]
+        g.finance_actor = {"id": user["id"], "name": user["name"]}
+    except StaffAuthError as exc:
+        raise FinanceError(str(exc), exc.status) from exc
 
 
 @finance_bp.after_request

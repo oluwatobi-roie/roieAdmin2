@@ -23,6 +23,8 @@ from services.finance_pdf import document_pdf
 def main():
     fixture = EmailApiTests()
     fixture.setUp()
+    from routes.auth import auth_bp, check_session
+    fixture.app.register_blueprint(auth_bp, url_prefix="/backend/auth")
     fixture.enterContext(patch("routes.finance.smtp_settings", return_value=SETTINGS))
     transport = fixture.enterContext(patch("routes.finance.send_document", return_value=("sent", "Email sent.")))
     fixture.app.register_blueprint(finance_bp, url_prefix="/backend/finance", name="email_browser")
@@ -100,7 +102,7 @@ def main():
             browser = playwright.chromium.launch(channel="chrome", headless=True)
             context = browser.new_context(viewport={"width": 390, "height": 844})
             context.add_cookies([{"name": "session_token", "value": "test-session", "url": "http://127.0.0.1:3109"}])
-            context.route("**/api/auth/check-session", lambda route: route.fulfill(json={"authenticated": True}))
+            context.route("**/api/auth/check-session", lambda route: route.fulfill(json={"authenticated": True, "staff": True}))
             context.add_init_script("""
                 window.sharedDocuments = [];
                 Object.defineProperty(navigator, 'canShare', { configurable: true, value: data => !!data.files?.length });

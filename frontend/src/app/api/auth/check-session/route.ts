@@ -1,21 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { backendBase } from '@/lib/portal-proxy';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
-    // Forward the request to your backend session check
-    const cookie = req.cookies.get('session_token')?.value;
-
-    const res = await fetch(`${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/auth/check-session`, {
-      method: 'GET',
-      headers: cookie ? { cookie: `session_token=${cookie}` } : {},
-      credentials: 'include',
+    const upstream = await fetch(`${backendBase()}/backend/auth/check-session`, {
+      headers: { cookie: req.headers.get('cookie') || '' }, cache: 'no-store', signal: AbortSignal.timeout(12000),
     });
-
-    const data = await res.json();
-
-    return NextResponse.json(data, { status: res.status });
-  } catch (err) {
-    console.error("Check session error:", err);
-    return NextResponse.json({ authenticated: false }, { status: 500 });
-  }
+    return NextResponse.json(await upstream.json(), { status: upstream.status, headers: { 'Cache-Control': 'no-store' } });
+  } catch { return NextResponse.json({ authenticated: false }, { status: 503, headers: { 'Cache-Control': 'no-store' } }); }
 }

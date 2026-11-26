@@ -38,7 +38,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
         run: |
           npm ci
-          node --test tests/finance.test.cjs
+          node --test tests/*.test.cjs
           npm run build
 
   deploy:

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sequence": 19674,
+  "sequence": 19676,
   "profiles": {
     "traccar-1230": {
       "name": "AdminTrials",
@@ -1437,7 +1437,7 @@
       "created_at": "2026-11-14T05:42:56.947756+00:00",
       "status": "issued",
       "currency": "NGN",
-      "revision": 5,
+      "revision": 7,
       "payments": [
         {
           "id": "c277afdb4be94436a1bdb38a4bab389d",
@@ -1524,6 +1524,34 @@
             "name": "Administrator"
           },
           "amount_minor": 66500000
+        },
+        {
+          "at": "2026-11-26T22:59:37.519806+00:00",
+          "action": "profile_extension_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "9bdb4f4e-33c5-4eea-966c-71ce5ac3f2d8",
+          "device_ids": [
+            77
+          ],
+          "previous_expiration_time": "2025-12-29T00:00:00.000Z",
+          "expiration_time": "2026-12-29T00:00:00.000Z"
+        },
+        {
+          "at": "2026-11-26T22:59:38.645839+00:00",
+          "action": "profile_extended",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "9bdb4f4e-33c5-4eea-966c-71ce5ac3f2d8",
+          "device_ids": [
+            77
+          ],
+          "previous_expiration_time": "2025-12-29T00:00:00.000Z",
+          "expiration_time": "2026-12-29T00:00:00.000Z"
         }
       ],
       "customer": {
@@ -1861,8 +1889,43 @@
       "total_minor": 116500000,
       "due_date": "2026-11-17",
       "notes": "",
-      "updated_at": "2026-11-14T05:48:56.935346+00:00",
-      "issued_at": "2026-11-14T05:44:06.721080+00:00"
+      "updated_at": "2026-11-26T22:59:38.645845+00:00",
+      "issued_at": "2026-11-14T05:44:06.721080+00:00",
+      "renewal_extension": {
+        "id": "9bdb4f4e-33c5-4eea-966c-71ce5ac3f2d8",
+        "request_key": "77303ac9-b853-4aa8-a639-e519ab92f905",
+        "state": "applied",
+        "invoice_id": "0a0b463eaaf84c04b1ddc5025eb55e12",
+        "invoice_number": "ROIE-2026-000005",
+        "user_id": 1193,
+        "renewal_quantity": 1,
+        "device_ids": [
+          77
+        ],
+        "devices": [
+          {
+            "id": 77,
+            "name": "GGE 173 XN",
+            "imei": "358657104083121",
+            "entry_ids": [
+              "e5dd5591ecdb4a70a6c0a59f60510439"
+            ]
+          }
+        ],
+        "previous_expiration_time": "2025-12-29T00:00:00.000Z",
+        "expiration_time": "2026-12-29T00:00:00.000Z",
+        "requested_at": "2026-11-26T22:59:37.519777+00:00",
+        "actor": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "applied_at": "2026-11-26T22:59:38.645798+00:00",
+        "verified_by": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "disabled": false
+      }
     },
     "a90da7e390b743eebdf3a6945b8440ae": {
       "id": "a90da7e390b743eebdf3a6945b8440ae",
@@ -2186,6 +2249,227 @@
           "completed_at": "2026-11-26T17:09:11.618748+00:00"
         }
       ]
+    },
+    "cf3b580abf1843a19ed14739c125923e": {
+      "id": "cf3b580abf1843a19ed14739c125923e",
+      "request_key": "81a1730f-dcbf-4d39-ba2c-db0b05f1a690",
+      "number": "ROIE-2026-019676",
+      "request_fingerprint": "d97a9ecababe06ec24001c930490dae0384b1e14d1c8f22476ced97462bc4a6f",
+      "created_at": "2026-11-26T22:57:59.824347+00:00",
+      "status": "issued",
+      "currency": "NGN",
+      "revision": 7,
+      "payments": [
+        {
+          "id": "31b18bcaf25548dcb16303d2c75bb28c",
+          "request_key": "90bbd444-c88d-4080-afe8-95ab8704442e",
+          "amount_minor": 1500000,
+          "method": "bank_transfer",
+          "paid_on": "2026-11-26",
+          "reference": "892323",
+          "recorded_at": "2026-11-26T23:00:45.562472+00:00",
+          "recorded_by": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "proof": {
+            "sha256": "959630d66f131a09f84cc075e9868bbdb230ed548c48be50dc3228859e95199d",
+            "name": "Untitled design (2).jpg",
+            "content_type": "image/png",
+            "size": 336524
+          },
+          "receipt_number": "ROIE-2026-019676-R001"
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-11-26T22:57:59.824508+00:00",
+          "action": "draft_saved",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-26T22:58:05.888070+00:00",
+          "action": "issued",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          }
+        },
+        {
+          "at": "2026-11-26T22:58:35.170072+00:00",
+          "action": "email_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "caa00ef2290d42699f2df81a7298dafc",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019676"
+        },
+        {
+          "at": "2026-11-26T22:58:36.617792+00:00",
+          "action": "email_sent",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "delivery_id": "caa00ef2290d42699f2df81a7298dafc",
+          "recipient": "roietechnologies@gmail.com",
+          "document_number": "ROIE-2026-019676"
+        },
+        {
+          "at": "2026-11-26T23:00:45.562486+00:00",
+          "action": "payment_recorded",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "amount_minor": 1500000
+        },
+        {
+          "at": "2026-11-26T23:01:35.398733+00:00",
+          "action": "profile_extension_requested",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "9bdedf73-fa2d-48f5-8dc2-092ac37990ae",
+          "device_ids": [
+            77
+          ],
+          "previous_expiration_time": "2026-12-29T00:00:00.000Z",
+          "expiration_time": "2027-12-29T00:00:00.000Z"
+        },
+        {
+          "at": "2026-11-26T23:01:36.516139+00:00",
+          "action": "profile_extended",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "extension_id": "9bdedf73-fa2d-48f5-8dc2-092ac37990ae",
+          "device_ids": [
+            77
+          ],
+          "previous_expiration_time": "2026-12-29T00:00:00.000Z",
+          "expiration_time": "2027-12-29T00:00:00.000Z"
+        }
+      ],
+      "customer": {
+        "name": "A-Test 1",
+        "email": "roietechnologies@gmail.com",
+        "phone": "07037870700",
+        "address": {
+          "line1": "217 7 Ave SW",
+          "line2": "",
+          "city": "Calgary",
+          "state": "AB",
+          "postal_code": "T2P 0X1",
+          "country": "Nigeria"
+        },
+        "formatted_address": "217 7 Ave SW\nCalgary, AB, T2P 0X1\nNigeria",
+        "profile_id": "traccar-1193",
+        "traccar_user_id": 1193
+      },
+      "entries": [
+        {
+          "category": "renewal",
+          "total_minor": 1500000,
+          "breakdown": [
+            {
+              "label": "GPRS fee",
+              "amount_minor": 1200000
+            },
+            {
+              "label": "Server fee",
+              "amount_minor": 300000
+            }
+          ],
+          "id": "c192306ea1384efab27da2234a573b42",
+          "device": {
+            "id": 77,
+            "name": "GGE 173 XN",
+            "imei": "358657104083121"
+          },
+          "vehicle_label": "",
+          "activity": "",
+          "task_notes": "",
+          "link_status": "linked"
+        }
+      ],
+      "subtotal_minor": 1500000,
+      "discount_minor": 0,
+      "discount": {
+        "type": "none",
+        "value": "0"
+      },
+      "total_minor": 1500000,
+      "due_date": "",
+      "notes": "",
+      "updated_at": "2026-11-26T23:01:36.516156+00:00",
+      "issued_at": "2026-11-26T22:58:05.888056+00:00",
+      "email_deliveries": [
+        {
+          "id": "caa00ef2290d42699f2df81a7298dafc",
+          "request_key": "07d25000-aaca-4f15-94f2-0782ab8491ac",
+          "kind": "invoice",
+          "payment_id": null,
+          "recipient": "roietechnologies@gmail.com",
+          "customer_name": "A-Test 1",
+          "label": "Invoice",
+          "document_number": "ROIE-2026-019676",
+          "filename": "ROIE-2026-019676.pdf",
+          "message_id": "<179573391516.26588.15403413413236174494@gmail.com>",
+          "document_sha256": "e54aeadd3495d213d4faeb3aa57bb1741aa852eb02ffc4ada964703581591096",
+          "invoice_revision": 2,
+          "state": "sent",
+          "requested_at": "2026-11-26T22:58:35.166868+00:00",
+          "actor": {
+            "id": 1,
+            "name": "Administrator"
+          },
+          "message": "Email sent.",
+          "completed_at": "2026-11-26T22:58:36.617758+00:00"
+        }
+      ],
+      "renewal_extension": {
+        "id": "9bdedf73-fa2d-48f5-8dc2-092ac37990ae",
+        "request_key": "5490bd2a-aea6-426e-8065-01b1cb6ed302",
+        "state": "applied",
+        "invoice_id": "cf3b580abf1843a19ed14739c125923e",
+        "invoice_number": "ROIE-2026-019676",
+        "user_id": 1193,
+        "renewal_quantity": 1,
+        "device_ids": [
+          77
+        ],
+        "devices": [
+          {
+            "id": 77,
+            "name": "GGE 173 XN",
+            "imei": "358657104083121",
+            "entry_ids": [
+              "c192306ea1384efab27da2234a573b42"
+            ]
+          }
+        ],
+        "previous_expiration_time": "2026-12-29T00:00:00.000Z",
+        "expiration_time": "2027-12-29T00:00:00.000Z",
+        "requested_at": "2026-11-26T23:01:35.398701+00:00",
+        "actor": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "applied_at": "2026-11-26T23:01:36.515999+00:00",
+        "verified_by": {
+          "id": 1,
+          "name": "Administrator"
+        },
+        "disabled": false
+      }
     }
   }
 }

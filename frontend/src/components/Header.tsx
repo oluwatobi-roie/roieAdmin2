@@ -21,9 +21,12 @@ export default function Header() {
   const handleLogout = async () => {
     if (loggingOut) return;
     setLoggingOut(true);
-    try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); }
-    catch (error) { console.error('Logout failed:', error); }
-    finally { router.push('/login'); }
+    try {
+      const response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      if (!response.ok) throw new Error('Could not finish signing out. Please retry.');
+      router.replace('/login'); router.refresh();
+    } catch { window.alert('Could not finish signing out. Please retry.'); }
+    finally { setLoggingOut(false); }
   };
   return <>
     <header className="app-header sticky top-0 z-40 h-16 border-b border-slate-200 bg-white">

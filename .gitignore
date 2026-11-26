@@ -55,6 +55,7 @@ __pycache__/
 DEPLOYMENT.md
 FINANCE.md
 FINANCE_EMAIL.md
+SECURITY_FIX_SUMMARY.md
 Tools/*
 
 # Local invoice ledger and test environment
