@@ -168,6 +168,6 @@ def document_pdf(invoice, kind="invoice", payment_id=None):
         canvas.drawString(40, 25, doc["number"])
         canvas.drawRightString(A4[0]-40, 25, f"Page {pdf.page}")
         canvas.restoreState()
-    SimpleDocTemplate(output, pagesize=A4, leftMargin=40, rightMargin=40, topMargin=32, bottomMargin=45,
+    SimpleDocTemplate(output, invariant=True, pagesize=A4, leftMargin=40, rightMargin=40, topMargin=32, bottomMargin=45,
                       title=title + " " + doc["number"], author="RoieTrackers").build(story, onFirstPage=footer, onLaterPages=footer)
     return output.getvalue(), doc["number"]

@@ -134,3 +134,66 @@ export function expiryLabel(value: string | null): string {
   if (!Number.isFinite(date.getTime())) return 'Invalid expiry date';
   return date.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' UTC';
 }
+
+
+export function documentPdfUrl(invoice: Invoice, receipt?: Receipt): string {
+  const query = new URLSearchParams({ kind: receipt ? 'receipt' : 'invoice', revision: String(invoice.revision) });
+  if (receipt?.kind === 'payment') query.set('payment_id', receipt.payments[0].id);
+  return `/api/finance/invoices/${invoice.id}/pdf?${query}`;
+}
+
+export async function fetchDocumentPdf(invoice: Invoice, receipt?: Receipt): Promise<File> {
+  const response = await fetch(documentPdfUrl(invoice, receipt), { cache: 'no-store' });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Could not prepare the PDF. Reload and try again.');
+  }
+  if (!response.headers.get('content-type')?.startsWith('application/pdf')) throw new Error('The server did not return a PDF.');
+  const name = `${receipt?.number || invoice.number}.pdf`.replace(/[^A-Za-z0-9_.-]/g, '_');
+  return new File([await response.blob()], name, { type: 'application/pdf' });
+}
+
+export function downloadPdfFile(file: File): void {
+  const url = URL.createObjectURL(file);
+  const anchor = document.createElement('a');
+  anchor.href = url; anchor.download = file.name;
+  document.body.appendChild(anchor); anchor.click(); anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// Treat local numbers as Nigerian mobile numbers; retain explicit international codes.
+export function whatsappPhone(value: string): string | null {
+  const input = value.trim();
+  if (!/^\+?[0-9 ().-]+$/.test(input)) return null;
+  let digits = input.replace(/[^0-9]/g, '');
+  if (digits.startsWith('00')) digits = digits.slice(2);
+  if (/^2340[789]\d{9}$/.test(digits)) digits = '234' + digits.slice(4);
+  if (/^234[789]\d{9}$/.test(digits)) return digits;
+  if (digits.startsWith('234')) return null;
+  if (!input.startsWith('+') && !input.startsWith('00')) {
+    if (/^0[789]\d{9}$/.test(digits)) return '234' + digits.slice(1);
+    if (/^[789]\d{9}$/.test(digits)) return '234' + digits;
+    return null;
+  }
+  return /^[1-9]\d{7,14}$/.test(digits) ? digits : null;
+}
+
+export function whatsappMessage(invoice: Invoice, receipt?: Receipt): string {
+  const amount = (minor: number) => `NGN ${(minor / 100).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return [
+    `Hello ${invoice.customer.name},`, '',
+    receipt ? `Your RoieTrackers ${receipt.kind === 'payment' ? 'payment receipt' : 'combined receipt'}: ${receipt.number}` : `Your RoieTrackers invoice: ${invoice.number}`,
+    `Invoice total: ${amount(receipt?.invoice_total_minor ?? invoice.total_minor)}`,
+    ...(receipt ? [`Payment received: ${amount(receipt.received_minor)}`] : []),
+    `Balance: ${amount(receipt?.balance_minor ?? invoice.balance_minor)}`,
+    ...(invoice.due_date && !receipt ? [`Due date: ${invoice.due_date}`] : []), '',
+    'Payment details', 'Bank: GTBank', 'Account number: 0421439134', 'Account name: Roie Technologies Ltd', '',
+    'Please see the PDF for details.', 'Thank you for choosing RoieTrackers.',
+  ].join('\n');
+}
+
+export function whatsappLink(phone: string, message: string): string {
+  const normalized = whatsappPhone(phone);
+  if (!normalized) throw new Error('Add a valid phone number to this customer profile before sharing.');
+  return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
+}

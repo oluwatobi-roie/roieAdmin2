@@ -101,6 +101,15 @@ def main():
             context = browser.new_context(viewport={"width": 390, "height": 844})
             context.add_cookies([{"name": "session_token", "value": "test-session", "url": "http://127.0.0.1:3109"}])
             context.route("**/api/auth/check-session", lambda route: route.fulfill(json={"authenticated": True}))
+            context.add_init_script("""
+                window.sharedDocuments = [];
+                Object.defineProperty(navigator, 'canShare', { configurable: true, value: data => !!data.files?.length });
+                Object.defineProperty(navigator, 'share', { configurable: true, value: async data => {
+                    window.sharedDocuments.push({ text: data.text, name: data.files[0].name,
+                        type: data.files[0].type, bytes: Array.from(new Uint8Array(await data.files[0].arrayBuffer())) });
+                }});
+            """)
+            context.route('https://wa.me/**', lambda route: route.fulfill(body='WhatsApp handoff intercepted by test.'))
             page = context.new_page()
             errors = []
             page.on("pageerror", lambda error: errors.append(str(error)))
@@ -120,6 +129,31 @@ def main():
             send.get_by_role("button", name="Confirm send", exact=True).click()
             expect(send.get_by_role("status")).to_contain_text("Email sent.")
             assert transport.call_count == 1
+            with page.expect_download() as download_info:
+                page.get_by_role("button", name="Download PDF", exact=True).click()
+            downloaded = download_info.value
+            assert downloaded.suggested_filename == invoice["number"] + ".pdf"
+            assert Path(downloaded.path()).read_bytes() == transport.call_args.args[2]
+            whatsapp = page.get_by_role("region", name="WhatsApp customer document")
+            whatsapp.get_by_role("button", name="Send to WhatsApp", exact=True).click()
+            expect(whatsapp.get_by_text("+2348012345678", exact=True)).to_be_visible()
+            message = whatsapp.get_by_role("textbox", name="WhatsApp message").input_value()
+            assert "NGN 140,000.00" in message and "0421439134" in message and "GTBank" in message
+            assert whatsapp.get_by_role("link", name="Open WhatsApp").get_attribute("href").startswith("https://wa.me/2348012345678?text=")
+            for width in [320, 390, 1440]:
+                page.set_viewport_size({"width": width, "height": 844})
+                assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), width
+            page.set_viewport_size({"width": 390, "height": 844})
+            whatsapp.screenshot(path=str(output / "whatsapp-mobile.png"))
+            whatsapp.get_by_role("button", name="Share PDF with app").click()
+            expect(whatsapp.get_by_role("status")).to_contain_text("Complete sending in WhatsApp")
+            shared = page.evaluate("window.sharedDocuments[0]")
+            assert shared["text"] == message and shared["type"] == "application/pdf"
+            assert bytes(shared["bytes"]) == transport.call_args.args[2]
+            with page.expect_popup() as popup_info, page.expect_download() as whatsapp_download:
+                whatsapp.get_by_role("link", name="Open WhatsApp").click()
+            popup_info.value.close()
+            assert Path(whatsapp_download.value.path()).read_bytes() == transport.call_args.args[2]
             page.get_by_role("button", name="Receipt", exact=True).first.click()
             send = page.get_by_role("region", name="Email customer document")
             send.get_by_role("button", name="Send to customer", exact=True).click()
@@ -127,6 +161,9 @@ def main():
             send.get_by_role("button", name="Confirm send", exact=True).click()
             expect(send.get_by_role("status")).to_contain_text("Email sent.")
             assert transport.call_count == 2
+            with page.expect_download() as receipt_download:
+                page.get_by_role("button", name="Download receipt PDF", exact=True).click()
+            assert Path(receipt_download.value.path()).read_bytes() == transport.call_args.args[2]
             page.get_by_role("button", name="Back to invoice", exact=True).click()
             page.get_by_role("button", name="Combined receipt", exact=True).click()
             send.get_by_role("button", name="Send to customer", exact=True).click()
@@ -134,10 +171,19 @@ def main():
             send.get_by_role("button", name="Confirm send", exact=True).click()
             expect(send.get_by_role("status")).to_contain_text("Email sent.")
             assert transport.call_count == 3
+            with page.expect_download() as combined_download:
+                page.get_by_role("button", name="Download receipt PDF", exact=True).click()
+            assert Path(combined_download.value.path()).read_bytes() == transport.call_args.args[2]
+            # A browser without native file sharing must still offer download + chat.
+            page.evaluate("Object.defineProperty(navigator, 'canShare', {configurable: true, value: undefined})")
+            whatsapp.get_by_role("button", name="Send to WhatsApp", exact=True).click()
+            expect(whatsapp.get_by_role("link", name="Open WhatsApp")).to_be_visible()
+            expect(whatsapp.get_by_role("button", name="Share PDF with app")).to_have_count(0)
+            expect(whatsapp.get_by_role("button", name="Download PDF", exact=True)).to_be_visible()
             page.screenshot(path=str(output / "combined-receipt-mobile.png"), full_page=True)
             assert not errors, errors
             browser.close()
-            print("Email browser/PDF checks passed: invoice, single/combined receipts, 320/390/768/1440px layout, 68 vehicles, totals, terms, stamps and no real emails.")
+            print("Email browser/PDF checks passed: invoice, single/combined receipts, 320/390/768/1440px layout, 68 vehicles, matching PDF downloads, WhatsApp message/phone, native file sharing and fallback; no real emails or WhatsApp messages.")
     finally:
         process.terminate()
         process.wait(timeout=15)

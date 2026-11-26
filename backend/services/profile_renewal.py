@@ -40,10 +40,15 @@ def eligible_devices(invoice, user_id, owned_devices):
         return []
     owned = {device["id"] for device in owned_devices}
     devices = {}
-    for entry in invoice["entries"]:
+    renewals = [entry for entry in invoice["entries"] if entry["category"] == "renewal"]
+    for entry in renewals:
         device = entry.get("device")
-        if entry["category"] == "renewal" and entry["total_minor"] > 0 and device and device["id"] in owned:
-            devices.setdefault(device["id"], {**device, "entry_ids": []})["entry_ids"].append(entry["id"])
+        # Each invoice entry bills one vehicle. Do not silently shrink a paid
+        # quantity when a vehicle is missing, unlinked, or billed twice.
+        if (entry["total_minor"] <= 0 or not device or device["id"] not in owned
+                or device["id"] in devices):
+            return []
+        devices[device["id"]] = {**device, "entry_ids": [entry["id"]]}
     return list(devices.values())
 
 

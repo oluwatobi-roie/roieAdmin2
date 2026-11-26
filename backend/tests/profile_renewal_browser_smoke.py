@@ -25,6 +25,7 @@ from sqlalchemy import text
 def main():
     fixture = ProfileRenewalTests()
     fixture.setUp()
+    fixture.session_response.json.return_value = {"id": 1123, "name": "Renewal Staff", "administrator": False}
     with fixture.app.app_context():
         db.session.execute(text("INSERT INTO tc_devices (id, name, uniqueid) VALUES (13, 'Offline vehicle', '11111'), (14, 'Failed vehicle', '22222')"))
         db.session.execute(text("INSERT INTO tc_user_device VALUES (42, 13), (42, 14)"))
@@ -157,6 +158,8 @@ def main():
             expect(confirm).to_be_disabled()
             expect(panel.get_by_text('The profile will still be expired', exact=False)).to_be_visible()
             panel.get_by_role('checkbox', name='Corolla').check()
+            expect(confirm).to_be_disabled()
+            panel.get_by_role('checkbox', name='Camry').check()
             expect(confirm).to_be_enabled()
             actions.get_by_role('button', name='Finance History').click()
             expect(panel).not_to_be_visible()
@@ -174,14 +177,16 @@ def main():
             page.screenshot(path=str(output / 'renewal-mobile.png'), full_page=True, animations='disabled')
             confirm.click()
             expect(panel.get_by_text('Profile extended to', exact=False)).to_be_visible()
-            expect(panel.get_by_text('Renewal vehicles (1): Corolla (12345)', exact=True)).to_be_visible()
+            expect(panel.get_by_text('Renewal vehicles (2): Corolla (12345), Camry (67890)', exact=True)).to_be_visible()
             expect(panel.get_by_role('link', name=paid['number'], exact=True)).to_be_visible()
             expect(panel.get_by_text('No unused, fully paid Renewal invoice', exact=False)).to_be_visible()
             assert fixture.account['expirationTime'] == '2021-02-28T12:34:56.000Z'
             fixture.put.assert_called_once()
+            assert fixture.put.call_args.kwargs['headers']['Authorization'] == 'Bearer test-renewal-service-token'
+            assert 'cookies' not in fixture.put.call_args.kwargs
             panel.get_by_role('link', name=paid['number'], exact=True).click()
             expect(page.get_by_text('Profile expiry extension', exact=True)).to_be_visible()
-            expect(page.get_by_text('Renewal vehicles (1): Corolla (12345)', exact=True)).to_be_visible()
+            expect(page.get_by_text('Renewal vehicles (2): Corolla (12345), Camry (67890)', exact=True)).to_be_visible()
             expect(page.get_by_text('Applied', exact=True)).to_be_visible()
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Invoice mobile overflow'
             invoice_actions = page.get_by_role('navigation', name='Invoice actions')

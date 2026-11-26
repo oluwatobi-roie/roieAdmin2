@@ -2,8 +2,12 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 
-load_dotenv()
+# Resolve files explicitly so starting from the repo root or backend folder
+# loads the same service credential. Shell/container variables still win.
+load_dotenv(Path(__file__).resolve().parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 db = SQLAlchemy()
 

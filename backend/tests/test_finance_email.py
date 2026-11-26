@@ -151,6 +151,40 @@ class EmailApiTests(unittest.TestCase):
         self.assertTrue(pdf.startswith(b"%PDF"))
 
 
+    @patch("routes.finance.smtp_settings", return_value=SETTINGS)
+    @patch("routes.finance.send_document", return_value=("sent", "Email sent."))
+    def test_downloads_are_the_same_pdf_as_email_attachments(self, transport, settings):
+        invoice = self.paid(self.issued(), "40000", "p1")
+        invoice = self.paid(invoice, "100000", "p2")
+        for index, (kind, payment_id) in enumerate([("invoice", None), ("receipt", invoice["payments"][0]["id"]), ("receipt", None)]):
+            result = self.send(invoice, kind=kind, payment_id=payment_id, request_key=f"pdf-{index}")
+            self.assertEqual(result.status_code, 200, result.json)
+            invoice = result.json["invoice"]
+            query = {"kind": kind, "revision": invoice["revision"]}
+            if payment_id:
+                query["payment_id"] = payment_id
+            downloaded = self.client.get(f"/finance/invoices/{invoice['id']}/pdf", query_string=query)
+            self.assertEqual(downloaded.status_code, 200)
+            self.assertEqual(downloaded.data, transport.call_args.args[2])
+            self.assertEqual(downloaded.mimetype, "application/pdf")
+            self.assertIn("attachment", downloaded.headers["Content-Disposition"])
+            self.assertEqual(downloaded.headers["Cache-Control"], "no-store")
+            self.assertEqual(downloaded.headers["X-Content-Type-Options"], "nosniff")
+
+    def test_pdf_download_auth_and_validation(self):
+        draft = self.create()
+        url = f"/finance/invoices/{draft['id']}/pdf"
+        self.assertEqual(self.client.get(url).status_code, 409)
+        invoice = self.post(f"invoices/{draft['id']}/finalize", {"revision": draft["revision"]}).json
+        for query, status in [("kind=bad", 400), ("payment_id=bad", 400), ("kind=receipt", 409), ("revision=0", 409), ("revision=invalid", 400)]:
+            self.assertEqual(self.client.get(url + "?" + query).status_code, status)
+        self.client.delete_cookie("session_token")
+        self.assertEqual(self.client.get(url).status_code, 401)
+        self.client.set_cookie("session_token", "test")
+        self.session_response.json.return_value = {"id": 42}
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+
 class TransportTests(unittest.TestCase):
     def operation(self):
         return {"recipient": "ada@example.com", "label": "Invoice", "document_number": "ROIE-2026-019674",

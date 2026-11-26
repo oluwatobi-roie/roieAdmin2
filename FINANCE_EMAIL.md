@@ -44,3 +44,23 @@ python backend/tests/finance_email_browser_smoke.py
 The optional browser/PDF check needs Python Playwright, PyMuPDF and Chrome. It uses temporary records, mocked SMTP and local ports 5059/3109. QA artifacts are written to ignored `output/pdf/email-qa/`.
 
 Implementation references: [Python SMTP client](https://docs.python.org/3/library/smtplib.html) and [ReportLab PDF guide](https://www.reportlab.com/docs/reportlab-userguide.pdf).
+
+
+## Universal PDFs and WhatsApp
+
+**Download PDF** and **Download receipt PDF** use the same backend renderer as email attachments. A document with the same financial contents produces the same PDF bytes. Downloads require a verified staff session; invoices are not published on a public URL. Finalize drafts before downloading or sharing.
+
+**Send to WhatsApp** loads the phone from the customer account matching the invoice email. Nigerian numbers such as `08012345678`, `8012345678`, `2348012345678` and `+2348012345678` normalize to `2348012345678`. Invalid or ambiguous numbers require correcting the customer profile. This does not rewrite the saved phone number.
+
+The panel prepares a message containing the invoice/receipt number, total, balance and GTBank account details. **Open WhatsApp** opens `wa.me` with the customer number and message, and downloads the PDF to attach in the chat. Staff review and send in WhatsApp. A click-to-chat URL cannot carry a binary attachment or force WhatsApp Business to open.
+
+On compatible browsers, **Share PDF with app** opens the device share menu with the PDF and message. Choose WhatsApp Business and the intended customer there; the browser cannot preselect that app or recipient. If sharing is unsupported, use the downloaded PDF and prepared chat. **Copy message** is available if the receiving app omits the text. WhatsApp determines whether the number is registered. No message is sent automatically.
+
+References: [WhatsApp click to chat](https://faq.whatsapp.com/5913398998672934) and [browser file sharing](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share).
+
+
+## Staff profile renewal
+
+All authorized portal staff can use the invoice-backed renewal flow. The backend validates their live session, then uses its existing `TRACCAR_ADMIN_KEY` for customer profile reads and the expiry update. Keep this credential in the backend server environment (the existing `backend/.env` is loaded by Compose); it is never exposed to the frontend. The audit identifies the staff member who performed the renewal.
+
+The invoice must be unused, finalized, fully paid and belong to the customer. Every vehicle billed in its Renewal section must be selected, with the same quantity and exact vehicle IDs, and must still belong to the account. Other services do not count. An invoice authorizes one year from the old expiry and can be used once. Disabled profiles remain disabled and administrator profiles are excluded. Existing pending operations use Verify / retry without adding a second year.

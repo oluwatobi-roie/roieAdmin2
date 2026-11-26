@@ -1,6 +1,7 @@
 """Staff-only finance API. SQL access here is strictly read-only."""
 import copy
 import hashlib
+import io
 import re
 from datetime import datetime, timezone
 from email.utils import make_msgid
@@ -12,7 +13,7 @@ import requests
 from flask import Blueprint, current_app, g, jsonify, request, send_file
 from sqlalchemy import text
 
-from config import TRACCAR_API_URL, db
+from config import TRACCAR_API_URL, TRACCAR_API_KEY, db
 from routes.devices.common import admin_user_list, exclude_users_list
 from services.finance import (CATEGORIES, FinanceError, Ledger, audit, calculate_tasks,
     check_revision, clean_customer, clean_phone, clean_text, finalize, get_invoice,
@@ -369,15 +370,25 @@ def customer_summary(user_id):
 
 # Expiry is an account property. Vehicles below are immutable invoice/audit links;
 # this action never changes device records or writes to SQL directly.
+def renewal_credentials():
+    # The live staff session is still required by require_staff. The server
+    # credential is scoped here to the invoice-backed customer expiry workflow.
+    if TRACCAR_API_KEY:
+        return {"headers": {"Authorization": f"Bearer {TRACCAR_API_KEY}", "Content-Type": "application/json"}}
+    return {"cookies": {"JSESSIONID": request.cookies.get("session_token")}}
+
+
 def renewal_account(user_id):
     try:
         response = requests.get(TRACCAR_API_URL + f"users/{user_id}",
-            cookies={"JSESSIONID": request.cookies.get("session_token")}, timeout=8)
+            **renewal_credentials(), timeout=8)
         if response.status_code != 200:
-            raise FinanceError("Could not load this profile from RoieTrackers. Check account access and retry.", 503)
+            raise FinanceError("Could not load this profile from RoieTrackers. Ask the administrator to check the backend TRACCAR_ADMIN_KEY and its account permissions.", 503)
         account = response.json()
         if not isinstance(account, dict) or account.get("id") != user_id:
             raise FinanceError("RoieTrackers returned an unexpected profile.", 503)
+        if account.get("administrator") is True:
+            raise FinanceError("Administrator profiles cannot be extended through customer finance.", 403)
         return account
     except (requests.RequestException, ValueError) as exc:
         if isinstance(exc, FinanceError):
@@ -455,11 +466,11 @@ def extend_profile_expiry(user_id):
                 invoice = get_invoice(data, invoice_id)
                 check_revision(invoice, payload)
                 available = {device["id"]: device for device in eligible_devices(invoice, user_id, customer_devices(user_id))}
-                if not set(selected).issubset(available):
-                    raise FinanceError("Use a fully paid invoice and select vehicles in its Renewal section that still belong to this customer.", 409)
+                if set(selected) != set(available):
+                    raise FinanceError("Use an unused, fully paid Renewal invoice and select exactly all vehicles billed for renewal. Every renewal vehicle must still belong to this customer.", 409)
                 operation = {"id": str(uuid.uuid4()), "request_key": request_key, "state": "pending",
                     "invoice_id": invoice_id, "invoice_number": invoice["number"], "user_id": user_id,
-                    "device_ids": selected, "devices": [available[key] for key in selected],
+                    "renewal_quantity": len(selected), "device_ids": selected, "devices": [available[key] for key in selected],
                     "previous_expiration_time": expected, "expiration_time": next_expiry(expected),
                     "requested_at": now(), "actor": copy.deepcopy(g.finance_actor)}
                 invoice["renewal_extension"] = operation
@@ -474,15 +485,15 @@ def extend_profile_expiry(user_id):
             with store.transaction() as data:
                 invoice = get_invoice(data, invoice_id)
                 available = {device["id"] for device in eligible_devices(invoice, user_id, customer_devices(user_id))}
-                if not set(selected).issubset(available):
+                if set(selected) != set(available):
                     raise FinanceError("Invoice payment or vehicle ownership changed. This pending extension requires reconciliation.", 409)
             updated = copy.deepcopy(account)
             updated["expirationTime"] = target
             try:
                 response = requests.put(TRACCAR_API_URL + f"users/{user_id}", json=updated,
-                    cookies={"JSESSIONID": request.cookies.get("session_token")}, timeout=8)
+                    **renewal_credentials(), timeout=8)
                 if response.status_code not in (200, 204):
-                    return jsonify(extension=operation, error="RoieTrackers did not accept the update. Check account permissions, then retry this pending extension."), 202
+                    return jsonify(extension=operation, error="RoieTrackers did not accept the update. Ask the administrator to check the backend TRACCAR_ADMIN_KEY, then use Verify / retry on this pending extension."), 202
             except requests.RequestException:
                 # The server might have committed despite a timeout. Read back
                 # before deciding; never calculate another year on a retry.
@@ -564,3 +575,25 @@ def email_document(invoice_id):
         audit(invoice, "email_" + state, g.finance_actor, delivery_id=operation["id"], recipient=recipient, document_number=number)
         result = invoice_view(invoice)
     return jsonify(delivery=delivery, invoice=result)
+
+
+@finance_bp.get("/invoices/<invoice_id>/pdf")
+def download_document(invoice_id):
+    kind, payment_id = request.args.get("kind", "invoice"), request.args.get("payment_id")
+    if kind not in ("invoice", "receipt") or (kind == "invoice" and payment_id is not None) or payment_id == "":
+        raise FinanceError("Choose an invoice or receipt to download.")
+    with ledger().transaction() as data:
+        snapshot = copy.deepcopy(get_invoice(data, invoice_id))
+    if snapshot["status"] != "issued":
+        raise FinanceError("Only finalized, active invoices and receipts can be downloaded.", 409)
+    revision = request.args.get("revision")
+    if revision is not None:
+        if not revision.isdigit():
+            raise FinanceError("Invalid document revision.")
+        check_revision(snapshot, {"revision": int(revision)})
+    content, number = document_pdf(snapshot, kind, payment_id)
+    filename = re.sub(r"[^A-Za-z0-9_.-]", "_", number) + ".pdf"
+    response = send_file(io.BytesIO(content), mimetype="application/pdf", as_attachment=True,
+                         download_name=filename, max_age=0)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response

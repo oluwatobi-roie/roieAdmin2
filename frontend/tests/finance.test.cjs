@@ -7,7 +7,7 @@ const ts = require('typescript');
 const { webcrypto } = require('node:crypto');
 const source = fs.readFileSync(path.join(__dirname, '../src/lib/finance.ts'), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-const sandbox = { exports: {}, crypto: { getRandomValues: bytes => webcrypto.getRandomValues(bytes) } };
+const sandbox = { exports: {}, URLSearchParams, crypto: { getRandomValues: bytes => webcrypto.getRandomValues(bytes) } };
 vm.runInNewContext(compiled, sandbox);
 const finance = sandbox.exports;
 const makeEntry = (id, overrides = {}) => ({ id: String(id), category: 'renewal', total_minor: 1500000, device: { id, name: `Vehicle ${id}`, imei: String(id) }, activity: '2027 renewal', link_status: 'linked', breakdown: [{ label: 'GPRS fee', amount_minor: 1200000 }, { label: 'Server fee', amount_minor: 300000 }], ...overrides });
@@ -100,4 +100,35 @@ test('fleet counts use unique devices and keep warning states separate from NOC 
   const result = count([device(1, 'NOC Passed Online'), device('1', 'NOC Passed Online'), device(2, 'Device is Offline'), device(3, 'NOC Failed Online'), device(4, 'Likely Online, but not updating frequently'), { device_id: 5 }]);
   assert.deepEqual(JSON.parse(JSON.stringify(result)), { passed: 1, failed: 1, offline: 1, infrequent: 1, unknown: 1 });
   assert.equal(Object.values(count([])).reduce((sum, value) => sum + value, 0), 0);
+});
+
+
+test('WhatsApp normalizes Nigerian mobile phone formats and rejects ambiguous numbers', () => {
+  for (const input of ['08012345678', '8012345678', '2348012345678', '+2348012345678', '0801 234 5678', '+234 (0) 801-234-5678', '002348012345678']) {
+    assert.equal(finance.whatsappPhone(input), '2348012345678', input);
+  }
+  for (const input of ['', '1234', '080123456789', '08012345678/09012345678', '08012345678 ext 2', '23412345', 'hello', '+08012345678']) {
+    assert.equal(finance.whatsappPhone(input), null, input);
+  }
+  assert.equal(finance.whatsappPhone('+1 (780) 555-0123'), '17805550123');
+});
+
+test('WhatsApp message contains amounts and bank details, and the URL encodes text safely', () => {
+  const invoice = { customer: { name: 'Ada & Sons' }, number: 'ROIE-2026-019674', total_minor: 1500000, balance_minor: 500000, due_date: '2026-12-01' };
+  const message = finance.whatsappMessage(invoice);
+  for (const value of ['Ada & Sons', 'NGN 15,000.00', 'NGN 5,000.00', 'GTBank', '0421439134', 'Roie Technologies Ltd']) assert.ok(message.includes(value));
+  const url = new URL(finance.whatsappLink('08012345678', message));
+  assert.equal(url.origin, 'https://wa.me');
+  assert.equal(url.pathname, '/2348012345678');
+  assert.equal(url.searchParams.get('text'), message);
+  assert.throws(() => finance.whatsappLink('bad', message));
+});
+
+test('receipt download selects the actual payment and message preserves its historical balance', () => {
+  const invoice = { id: 'invoice-id', revision: 3, customer: { name: 'Ada' }, number: 'INV', total_minor: 1500000, balance_minor: 0 };
+  const receipt = { kind: 'payment', number: 'INV-R001', invoice_total_minor: 1500000, received_minor: 500000, balance_minor: 1000000, payments: [{ id: 'p1' }] };
+  const url = new URL(finance.documentPdfUrl(invoice, receipt), 'https://example.test');
+  assert.equal(url.searchParams.get('payment_id'), 'p1');
+  assert.equal(url.searchParams.get('revision'), '3');
+  assert.match(finance.whatsappMessage(invoice, receipt), /Balance: NGN 10,000.00/);
 });

@@ -1,13 +1,14 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { FiArrowLeft, FiUser, FiPrinter, FiRefreshCw, FiEdit2, FiCheck } from 'react-icons/fi';
+import { FiArrowLeft, FiUser, FiDownload, FiRefreshCw, FiEdit2, FiCheck } from 'react-icons/fi';
 import { useAuth } from '../hooks/useAuth';
-import { Account, Device, Invoice, Receipt, categories, currency, financeApi, statusLabel, vehicleName } from '@/lib/finance';
+import { Account, Device, Invoice, Receipt, categories, currency, financeApi, statusLabel, vehicleName, fetchDocumentPdf, downloadPdfFile } from '@/lib/finance';
 import InvoiceWizard from '@/components/finance/InvoiceWizard';
 import { InvoicePaper, ReceiptPaper } from '@/components/finance/InvoiceDocument';
 import ExtensionAudit from '@/components/finance/ExtensionAudit';
 import PaymentPanel from '@/components/finance/PaymentPanel';
 import SendDocument from '@/components/finance/SendDocument';
+import WhatsAppDocument from '@/components/finance/WhatsAppDocument';
 import { CustomerPicker, Field, actionClass, fieldClass, secondaryClass } from '@/components/finance/FinanceInputs';
 import './print.css';
 
@@ -82,7 +83,7 @@ export default function FinancePage() {
         <nav aria-label="Invoice actions" className="invoice-toolbar">
           <button className="invoice-action" aria-label="All invoices" title="All invoices" onClick={() => setMode('list')}><FiArrowLeft aria-hidden="true" /><span className="sm:hidden">Invoices</span><span className="hidden sm:inline">All invoices</span></button>
           {selected.customer.traccar_user_id && <a className="invoice-action" aria-label="View client profile" title="View client profile" href={`/search?user_id=${selected.customer.traccar_user_id}`}><FiUser aria-hidden="true" /><span className="sm:hidden">Profile</span><span className="hidden sm:inline">View client profile</span></a>}
-          <button className="invoice-action" aria-label="Print / save PDF" title="Print / save PDF" onClick={() => window.print()}><FiPrinter aria-hidden="true" /><span className="sm:hidden">Print</span><span className="hidden sm:inline">Print / save PDF</span></button>
+          <button className="invoice-action" aria-label="Download PDF" title={selected.status === 'issued' ? 'Download PDF' : 'Finalize invoice to download PDF'} disabled={busy || selected.status !== 'issued'} onClick={() => void run(async () => { downloadPdfFile(await fetchDocumentPdf(selected)); })}><FiDownload aria-hidden="true" /><span className="sm:hidden">PDF</span><span className="hidden sm:inline">Download PDF</span></button>
           <button className="invoice-action" aria-label="Reload" title="Reload" disabled={busy} onClick={() => void run(async () => { await openInvoice(await financeApi<Invoice>(`invoices/${selected.id}`)); })}><FiRefreshCw aria-hidden="true" /><span>Reload</span></button>
         </nav>
         {selected.status === 'draft' && <div className="flex flex-wrap gap-2">
@@ -91,6 +92,7 @@ export default function FinancePage() {
         </div>}
       </div>
       <SendDocument key={selected.id} invoice={selected} onUpdated={update} />
+      <WhatsAppDocument key={`${selected.id}-${selected.revision}`} invoice={selected} />
       <InvoicePaper invoice={selected} />
       <div className="finance-no-print space-y-5">
         {!selected.customer.traccar_user_id && selected.status !== 'void' && <section className="finance-card space-y-3"><h2 className="font-semibold">Link an existing customer account</h2><CustomerPicker disabled={busy} onAccount={async id => { await action('link-customer', { user_id: id }); setDevices((await financeApi<{ devices: Device[] }>(`customers/${id}`)).devices); }} /></section>}
@@ -101,6 +103,6 @@ export default function FinancePage() {
         {canCancel && selected.status !== 'void' && !selected.paid_minor && <details className="finance-card"><summary className="cursor-pointer text-sm font-medium text-red-800">Cancel invoice</summary><form className="mt-4 space-y-3" onSubmit={event => { event.preventDefault(); void run(() => action('void', { reason })); }}><Field label="Reason for cancellation"><input required maxLength={500} className={fieldClass} value={reason} onChange={event => setReason(event.target.value)} /></Field><p className="text-sm text-slate-500">The invoice will remain in the history, marked as cancelled.</p><button className={secondaryClass} disabled={busy}>Confirm cancellation</button></form></details>}
       </div>
     </>}
-    {mode === 'receipt' && receipt && <><div className="finance-no-print flex flex-wrap justify-between gap-3"><button className={secondaryClass} onClick={() => setMode('detail')}>Back to invoice</button><button className={actionClass} onClick={() => window.print()}>Print / save receipt</button></div>{selected && <SendDocument key={receipt.number} invoice={selected} receipt={receipt} onUpdated={update} />}<ReceiptPaper receipt={receipt} /></>}
+    {mode === 'receipt' && receipt && <><div className="finance-no-print flex flex-wrap justify-between gap-3"><button className={secondaryClass} onClick={() => setMode('detail')}>Back to invoice</button><button className={actionClass} disabled={busy || !selected} onClick={() => void run(async () => { if (selected) downloadPdfFile(await fetchDocumentPdf(selected, receipt)); })}><FiDownload aria-hidden="true" />Download receipt PDF</button></div>{selected && <SendDocument key={receipt.number} invoice={selected} receipt={receipt} onUpdated={update} />}{selected && <WhatsAppDocument key={`${receipt.number}-${selected.revision}`} invoice={selected} receipt={receipt} />}<ReceiptPaper receipt={receipt} /></>}
   </div></main>;
 }

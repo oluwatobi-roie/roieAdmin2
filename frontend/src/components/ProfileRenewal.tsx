@@ -32,7 +32,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
   }, [load]);
   useEffect(() => { void refresh(); }, [refresh]);
   async function extend(prior?: ProfileExtension) {
-    if (running.current || (!prior && (!invoice || !deviceIds.length || !options))) return;
+    if (running.current || (!prior && (!invoice || deviceIds.length !== invoice.devices.length || !options))) return;
     running.current = true; setBusy(true); setError(''); setMessage('');
     if (!requestKey.current) requestKey.current = newRequestKey();
     try {
@@ -55,7 +55,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
     }
   }
   return <section aria-label="Profile renewal" className="min-w-0 space-y-4 text-sm">
-      <p className="text-slate-600">Add one year to the existing expiry date using a fully paid Renewal invoice. This changes expiry for the whole account. Select the vehicles due for renewal to record the invoice link for audit.</p>
+      <p className="text-slate-600">Add one year to the existing expiry date using a fully paid Renewal invoice. This changes expiry for the whole account. Select every vehicle billed in the invoice&apos;s Renewal section. The selected count must match its renewal quantity.</p>
       {busy && <p role="status" className="text-blue-700">Checking renewal details...</p>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-800">{error}</p>}
       {message && <p role="status" className="rounded-lg bg-blue-50 p-3 text-blue-900">{message}</p>}
@@ -65,7 +65,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
         {options.disabled && <p className="text-amber-800">This account is disabled. Extending its expiry will leave it disabled.</p>}
         {pending && <p className="text-amber-800">Resolve the pending extension in renewal history before starting another.</p>}
         {!pending && options.proposed_expiration_time && <>
-          {!options.invoices.length ? <p className="text-slate-600">No unused, fully paid Renewal invoice has vehicles on this account. <a href={`/finance?new=1&user_id=${userId}`} className="text-blue-700 underline">Create a renewal invoice</a>, then record full payment.</p> : <>
+          {!options.invoices.length ? <p className="text-slate-600">No unused, fully paid Renewal invoice has its full vehicle list linked to this account. <a href={`/finance?new=1&user_id=${userId}`} className="text-blue-700 underline">Create a renewal invoice</a>, then record full payment.</p> : <>
             <label className="block space-y-1 font-medium">Paid renewal invoice
               <select className="block w-full rounded-lg border border-slate-300 bg-white p-3" disabled={busy} value={invoiceId} onChange={event => { setInvoiceId(event.target.value); setDeviceIds([]); requestKey.current = ''; }}>
                 <option value="">Select an invoice</option>
@@ -74,7 +74,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
             </label>
             {invoice && <fieldset disabled={busy} className="min-w-0 space-y-3">
               <legend className="font-semibold">Vehicles due for renewal</legend>
-              <p className="text-slate-500">Only vehicles in this invoice&apos;s Renewal section and still on this account are available.</p>
+              <p className="text-slate-500">All vehicles in this invoice&apos;s Renewal section must be selected and still belong to this account.</p>
               <button type="button" className={secondary} onClick={() => { setDeviceIds(deviceIds.length === invoice.devices.length ? [] : invoice.devices.map(device => device.id)); requestKey.current = ''; }}>{deviceIds.length === invoice.devices.length ? 'Clear selection' : 'Select all renewal vehicles'}</button>
               <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl border border-slate-200 p-3">
                 {invoice.devices.map(device => <label key={device.id} className="flex items-start gap-3 rounded-lg p-2 hover:bg-blue-50">
@@ -88,7 +88,7 @@ export default function ProfileRenewal({ userId, onUpdated }: { userId: string; 
                 <p className="mt-1 font-semibold">New expiry: {expiryLabel(options.proposed_expiration_time)}</p>
               </div>
               {stillExpired && <p className="rounded-lg bg-amber-50 p-3 text-amber-900">The profile will still be expired after this one-year extension because renewal starts from the old expiry date.</p>}
-              <button type="button" className={button} disabled={busy || !deviceIds.length} onClick={() => void extend()}>Confirm one-year extension</button>
+              <button type="button" className={button} disabled={busy || deviceIds.length !== invoice.devices.length} onClick={() => void extend()}>Confirm one-year extension</button>
             </fieldset>}
           </>}
         </>}
