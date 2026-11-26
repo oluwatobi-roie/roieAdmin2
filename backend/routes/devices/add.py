@@ -23,6 +23,13 @@ MAX_BULK = 15          # hard cap
 def add_device():
     data = request.get_json()
     mode = data.get("mode", "single")
+    if mode == "bulk":
+        count = data.get("count", 1)
+        if isinstance(count, bool) or not str(count).isascii() or not str(count).isdigit() or not 1 <= int(count) <= MAX_BULK:
+            return jsonify(error="Choose between 1 and 15 devices."), 400
+    for field in ("name", "phone", "uniqueid"):
+        if field in data and (not isinstance(data[field], (str, int)) or isinstance(data[field], bool) or len(str(data[field])) > 200):
+            return jsonify(error="Invalid device details."), 400
 
     if mode == "bulk":
         return _add_bulk_devices(data)

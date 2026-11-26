@@ -25,6 +25,8 @@ from sqlalchemy import text
 def main():
     fixture = ProfileRenewalTests()
     fixture.setUp()
+    from routes.auth import auth_bp, check_session
+    fixture.app.register_blueprint(auth_bp, url_prefix="/backend/auth")
     fixture.session_response.json.return_value = {"id": 1123, "name": "Renewal Staff", "administrator": False}
     with fixture.app.app_context():
         db.session.execute(text("INSERT INTO tc_devices (id, name, uniqueid) VALUES (13, 'Offline vehicle', '11111'), (14, 'Failed vehicle', '22222')"))
@@ -63,7 +65,7 @@ def main():
             context = browser.new_context(viewport={'width': 1440, 'height': 1000})
             context.add_init_script("Object.defineProperty(globalThis.crypto, 'randomUUID', {value: undefined, configurable: true})")
             context.add_cookies([{'name': 'session_token', 'value': 'test-session', 'url': 'http://127.0.0.1:3108'}])
-            context.route('**/api/auth/check-session', lambda route: route.fulfill(json={'authenticated': True}))
+            context.route('**/api/auth/check-session', lambda route: route.fulfill(json={'authenticated': True, 'staff': True}))
             devices = [{
                 'device_id': '10', 'device_name': 'LAGOS-DELIVERY-FLEET-' + 'X' * 65,
                 'imei': '123456789012345', 'model': 'GPS_D_V4', 'phone': '+2348012345678',

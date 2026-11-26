@@ -3,11 +3,17 @@ from routes.devices import device_bp
 from services.login_required import login_required
 from sqlalchemy import bindparam
 
+def _escape_like(value):
+    return value.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+
+
 # /api/device/search
 @device_bp.route('/search', methods=['GET'])
 @login_required
 def search_device_or_user():
-    search = request.args.get('term', '')
+    search = request.args.get('term', '').strip()
+    if len(search) > 254:
+        return jsonify(error='Search term is too long'), 400
     user_id = request.args.get('user_id')
     if user_id is not None and (not user_id.isascii() or not user_id.isdigit() or len(user_id) > 19 or not 0 < int(user_id) <= 9223372036854775807):
         return jsonify({'error': 'Invalid customer account ID'}), 400
@@ -20,7 +26,7 @@ def search_device_or_user():
     if user_id is not None or '@' in search:
         # 1. find the user
         # Invoice links use the stable account ID, even if the email changed.
-        condition = "id = :user_id" if user_id is not None else "email LIKE :email"
+        condition = "id = :user_id" if user_id is not None else "LOWER(email) = LOWER(:email)"
         parameters = {"user_id": int(user_id)} if user_id is not None else {"email": search}
         user_row = db.session.execute(text(f"""
             SELECT id, name, email, phone, expirationtime, disabled
@@ -82,12 +88,12 @@ def search_device_or_user():
         """).bindparams(bindparam("dids", expanding=True))
         device_rows = db.session.execute(devices_sql, {"dids": tuple(device_ids)}).fetchall()
 
-        device_profiles = [_build_device_profile(dev) for dev in device_rows]
+        device_profiles = _build_device_profiles(device_rows)
 
         return jsonify({
             "user": _format_user(user_row),
             "devices": device_profiles,
-            "truncated": len(device_ids) > 10
+            "truncated": False
         })
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -113,19 +119,21 @@ def search_device_or_user():
         WHERE 
               CAST(d.id AS CHAR) = :search
           OR  d.uniqueid         = :search
-          OR  d.phone       LIKE :phone
-          OR  d.name        LIKE :name
+          OR  d.phone       LIKE :phone ESCAPE '!'
+          OR  d.name        LIKE :name ESCAPE '!'
+        ORDER BY d.id
+        LIMIT 50
     """)
     device_rows = db.session.execute(device_sql, {
         "search": search,
-        "name":   f"%{search}%",
-        "phone":  f"%{search}%"
+        "name":   f"%{_escape_like(search)}%",
+        "phone":  f"%{_escape_like(search)}%"
     }).fetchall()
 
     if not device_rows:
         return jsonify({"error": "Device not found"}), 404
 
-    device_profiles = [_build_device_profile(row) for row in device_rows]
+    device_profiles = _build_device_profiles(device_rows)
     return jsonify(device_profiles)
 
 
@@ -141,11 +149,7 @@ def _format_user(row):
         "status": get_account_status(row.expirationtime, row.disabled)
     }
 
-def _build_device_profile(device):
-    # fetch users linked to this device (same logic you already had)
-    # (left out here for brevity, reuse exact code you wrote earlier)
-    user_profiles = _fetch_users_for_device(device.device_id, device.groupid)
-
+def _build_device_profile(device, user_profiles):
     return {
         "device_id":        device.device_id,
         "device_name":      device.device_name,
@@ -162,47 +166,28 @@ def _build_device_profile(device):
         "user_profiles":    user_profiles
     }
 
-def _fetch_users_for_device(device_id, group_id=None):
-    if group_id:
-        user_sql = text("""
-            SELECT DISTINCT u.id, u.name, u.email, u.phone, u.expirationtime, u.disabled
-            FROM tc_users u
-            WHERE u.id IN (
-                SELECT ud.userid FROM tc_user_device ud WHERE ud.deviceid = :device_id
-                UNION
-                SELECT ug.userid FROM tc_user_group ug WHERE ug.groupid = :group_id
-            )
-        """)
-        user_rows = db.session.execute(user_sql, {
-            "device_id": device_id,
-            "group_id": group_id
-        }).fetchall()
-    else:
-        user_sql = text("""
-            SELECT DISTINCT u.id, u.name, u.email, u.phone, u.expirationtime, u.disabled
-            FROM tc_users u
-            WHERE u.id IN (
-                SELECT ud.userid FROM tc_user_device ud WHERE ud.deviceid = :device_id
-            )
-        """)
-        user_rows = db.session.execute(user_sql, {
-            "device_id": device_id
-        }).fetchall()
-
-    user_profiles = []
-    for row in user_rows:
-        if row.id in exclude_users_list:
-            continue
-        user_profiles.append({
-            "id": row.id,
-            "name": row.name,
-            "email": mask_email(row.email),
-            "phone": mask_phone(row.phone),
-            "expiry": row.expirationtime.isoformat() if row.expirationtime else None,
-            "status": get_account_status(row.expirationtime, row.disabled)
-        })
-
-    return user_profiles
+def _build_device_profiles(devices):
+    if not devices:
+        return []
+    ids = [device.device_id for device in devices]
+    users_sql = text("""
+        SELECT d.id AS linked_device_id, u.id, u.name, u.email, u.phone, u.expirationtime, u.disabled
+        FROM tc_devices d
+        JOIN tc_user_device ud ON ud.deviceid = d.id
+        JOIN tc_users u ON u.id = ud.userid
+        WHERE d.id IN :ids
+        UNION
+        SELECT d.id AS linked_device_id, u.id, u.name, u.email, u.phone, u.expirationtime, u.disabled
+        FROM tc_devices d
+        JOIN tc_user_group ug ON ug.groupid = d.groupid
+        JOIN tc_users u ON u.id = ug.userid
+        WHERE d.id IN :ids
+    """).bindparams(bindparam("ids", expanding=True))
+    by_device = {device_id: [] for device_id in ids}
+    for row in db.session.execute(users_sql, {"ids": ids}).fetchall():
+        if row.id not in exclude_users_list:
+            by_device[row.linked_device_id].append(_format_user(row))
+    return [_build_device_profile(device, by_device[device.device_id]) for device in devices]
 
 
 # --- Utility Functions --- #

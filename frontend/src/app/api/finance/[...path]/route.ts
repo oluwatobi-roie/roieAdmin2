@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sameOriginWrite } from '@/lib/portal-proxy';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +9,7 @@ async function proxy(req: NextRequest, context: { params: Promise<{ path: string
     return NextResponse.json({ error: 'Invalid finance path.' }, { status: 400 });
   }
   if (req.method !== 'GET') {
-    const origin = req.headers.get('origin');
-    const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
-    if (!origin || new URL(origin).host !== host || req.headers.get('x-finance-request') !== '1') {
+    if (!sameOriginWrite(req) || req.headers.get('x-finance-request') !== '1') {
       return NextResponse.json({ error: 'Same-origin finance request required.' }, { status: 403 });
     }
   }

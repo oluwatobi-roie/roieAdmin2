@@ -3,10 +3,12 @@
 # backend/services/user_onboard.py
 from routes.devices.common import request, jsonify, datetime, timedelta, Blueprint, random, string, requests, timezone
 from config import TRACCAR_API_URL, HEADERS_JSON, HEADERS_FORM
+import re
+import secrets
 
 
 def _rand_pwd(n=10):
-    return "".join(random.choices(string.ascii_letters + string.digits, k=n))
+    return secrets.token_urlsafe(24)
 
 def _notification_wizard(ntype: str) -> dict:
     basic = ['ignitionOn', 'ignitionOff', 'geofenceEnter', 'geofenceExit']
@@ -23,6 +25,7 @@ def _create_user(name, email, phone) -> tuple[int, str]:
     pwd = _rand_pwd()
     expiry = (datetime.now(timezone.utc) + timedelta(days=365)).strftime('%Y-%m-%dT%H:%M:%SZ')
     payload = {
+        "administrator": False,
         "name": name, 
         "email": email, 
         "phone": phone,
@@ -36,7 +39,7 @@ def _create_user(name, email, phone) -> tuple[int, str]:
             "positionItems":"speed,address,motion,ignition,fixTime,deviceTime,alarm,blocked"
         }
     }
-    r = requests.post(TRACCAR_API_URL + "users", json=payload, headers=HEADERS_JSON)
+    r = requests.post(TRACCAR_API_URL + "users", json=payload, headers=HEADERS_JSON, timeout=15, allow_redirects=False)
 
     if r.status_code == 400 and "Duplicate entry" in r.text:
         print(f"User with email {email} already exists")    
@@ -48,7 +51,7 @@ def _login_get_cookie(email, pwd) -> str:
     payload = {"email": email, "password": pwd}
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     
-    resp = requests.post(TRACCAR_API_URL + "session", data=payload, headers=headers)
+    resp = requests.post(TRACCAR_API_URL + "session", data=payload, headers=headers, timeout=15, allow_redirects=False)
     resp.raise_for_status()
     cookie = resp.cookies.get("JSESSIONID")
 
@@ -62,14 +65,14 @@ def _create_notifications(user_cookie) -> list[int]:
     created = []
     for nt in ntypes:
         r = requests.post(TRACCAR_API_URL + "notifications",
-                          json=_notification_wizard(nt), headers=headers)
+                          json=_notification_wizard(nt), headers=headers, timeout=15, allow_redirects=False)
         r.raise_for_status()
         nid = r.json()["id"]; created.append(nid)
     return created
 
 def _trigger_pwd_reset(email):
     requests.post(TRACCAR_API_URL+"password/reset",
-                  data={"email": email}, headers=HEADERS_FORM).raise_for_status()
+                  data={"email": email}, headers=HEADERS_FORM, timeout=15, allow_redirects=False).raise_for_status()
 
 
 
@@ -78,37 +81,32 @@ def _trigger_pwd_reset(email):
 # ───────────────────────── public service ───────────────────────── #
 
 def onboard_user(payload: dict):
-    try:
-        name, email, phone = payload["name"], payload["email"], payload["phone"]
-    except KeyError as e:
-        return {"error": f"Missing required field: {str(e)}"}, 400
-
-    # 1. create user
+    if not isinstance(payload, dict):
+        return {"error": "Customer details are required."}, 400
+    name, email, phone = (payload.get(key) for key in ("name", "email", "phone"))
+    if (not isinstance(name, str) or not name.strip() or len(name) > 200
+            or not isinstance(email, str) or len(email) > 254
+            or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email.strip())
+            or not isinstance(phone, str) or len(phone) > 40):
+        return {"error": "Provide a customer name, valid email and phone field."}, 400
+    name, email = name.strip(), email.strip()
     try:
         user_id, temp_pwd = _create_user(name, email, phone)
-    except Exception as e:
-        return {"error": str(e)}, 400      # ← NO jsonify here!
-
-    # 2. login
+    except ValueError:
+        return {"error": "User with this email already exists or could not be created."}, 400
+    except requests.RequestException:
+        return {"error": "Could not create the customer account."}, 502
+    user_cookie = None
     try:
         user_cookie = _login_get_cookie(email, temp_pwd)
-    except Exception as e:
-        return {"error": f"Login failed: {str(e)}"}, 500
-
-    # 3. notifications
-    try:
         _create_notifications(user_cookie)
-    except Exception as e:
-        return {"error": f"Failed to create notifications: {str(e)}"}, 500
-
-    # 4. trigger reset mail
-    try:
         _trigger_pwd_reset(email)
-    except Exception as e:
-        return {"error": f"Failed to send reset email: {str(e)}"}, 500
-
-    # success
-    return {"user_id": user_id,
-            "user_name": name,
-            "user_email": email}, 201
-
+    except (requests.RequestException, ValueError, KeyError, RuntimeError):
+        return {"error": "Customer created, but setup could not be completed. Check the account before retrying."}, 502
+    finally:
+        if user_cookie:
+            try:
+                requests.delete(TRACCAR_API_URL + "session", cookies={"JSESSIONID": user_cookie}, timeout=5, allow_redirects=False)
+            except requests.RequestException:
+                pass
+    return {"user_id": user_id, "user_name": name, "user_email": email}, 201

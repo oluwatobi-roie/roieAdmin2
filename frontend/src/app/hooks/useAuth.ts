@@ -11,10 +11,10 @@ export function useAuth() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/auth/check-session', { method: 'GET' });
+        const res = await fetch('/api/auth/check-session', { method: 'GET', cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          if (data.authenticated) {
+          if (data.authenticated === true && data.staff === true) {
             setAuthenticated(true);
           } else {
             router.replace('/login');

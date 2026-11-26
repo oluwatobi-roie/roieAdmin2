@@ -20,6 +20,8 @@ export async function GET(req: Request) {
       `${process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/backend/device/search?${query.toString()}`,
       {
         method: "GET",
+        cache: "no-store",
+        signal: AbortSignal.timeout(20000),
         headers: {
           cookie: req.headers.get("cookie") || "",
         },
@@ -39,7 +41,7 @@ export async function GET(req: Request) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data, { status: 200, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("🔥 Unexpected error while fetching backend:", error);
     return NextResponse.json(

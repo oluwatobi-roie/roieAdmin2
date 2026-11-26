@@ -25,6 +25,8 @@ import pymupdf as fitz
 def main():
     fixture = FinanceApiTests()
     fixture.setUp()
+    from routes.auth import auth_bp, check_session
+    fixture.app.register_blueprint(auth_bp, url_prefix="/backend/auth")
     logging.getLogger('werkzeug').setLevel(logging.ERROR)
     with fixture.app.app_context():
         for number in range(1, 67):
@@ -35,14 +37,14 @@ def main():
     server = make_server('127.0.0.1', 5057, fixture.app, threaded=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     project = Path(__file__).resolve().parents[2]
-    output = project / 'MyComputer' / 'finance-qa'
+    output = project / 'output' / 'pdf' / 'finance-qa'
     output.mkdir(parents=True, exist_ok=True)
     pdf_output = project / 'output' / 'pdf'
     pdf_output.mkdir(parents=True, exist_ok=True)
     proof = output / 'test-payment.png'
     proof.write_bytes(base64.b64decode(screenshot()['data_url'].split(',')[1]))
     log = (output / 'next.log').open('w', encoding='utf-8')
-    process = subprocess.Popen(['node', 'node_modules/next/dist/bin/next', 'start', '-p', '3107', '--hostname', '127.0.0.1'], cwd=project / 'frontend', env={**os.environ, 'BACKEND_URL': 'http://127.0.0.1:5057', 'NEXT_BUILD_DIR': '.next-finance-qa', 'NEXT_TELEMETRY_DISABLED': '1'}, stdout=log, stderr=subprocess.STDOUT, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    process = subprocess.Popen(['node', 'node_modules/next/dist/bin/next', 'start', '-p', '3107', '--hostname', '127.0.0.1'], cwd=project / 'frontend', env={**os.environ, 'BACKEND_URL': 'http://127.0.0.1:5057', 'NEXT_BUILD_DIR': os.environ.get('NEXT_BUILD_DIR', '.next-finance-qa'), 'NEXT_TELEMETRY_DISABLED': '1'}, stdout=log, stderr=subprocess.STDOUT, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     try:
         deadline = monotonic() + 45
         while monotonic() < deadline:
@@ -59,7 +61,7 @@ def main():
             context = browser.new_context(viewport={'width': 1440, 'height': 1000})
             context.add_init_script("Object.defineProperty(globalThis.crypto, 'randomUUID', {value: undefined, configurable: true})")
             context.add_cookies([{'name': 'session_token', 'value': 'test-session', 'url': 'http://127.0.0.1:3107'}])
-            context.route('**/api/auth/check-session', lambda route: route.fulfill(json={'authenticated': True}))
+            context.route('**/api/auth/check-session', lambda route: route.fulfill(json={'authenticated': True, 'staff': True}))
             page = context.new_page()
             errors = []
             page.on('pageerror', lambda error: errors.append(str(error)))
@@ -250,7 +252,7 @@ def main():
             expect(page.get_by_label('Street address', exact=True)).to_have_value('1 Main Road')
             page.goto('http://127.0.0.1:3107/')
             page.set_viewport_size({'width': 1440, 'height': 1000})
-            expect(page.get_by_role('heading', name='Device Manager Dashboard')).to_be_visible()
+            expect(page.get_by_role('heading', name='Your workspace')).to_be_visible()
             page.evaluate("window.scrollTo({top: 0, behavior: 'instant'})")
             page.screenshot(animations='disabled', path=str(output / 'desktop-dashboard.png'), full_page=True)
             assert not errors, errors
